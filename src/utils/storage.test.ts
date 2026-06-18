@@ -1,10 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
   hasCustomSettings,
-  hasSeenWelcome,
   loadSettings,
-  saveSettings,
-  saveWelcomeSeen
+  saveSettings
 } from './storage';
 import { DEFAULT_SETTINGS } from '../types';
 
@@ -35,12 +33,20 @@ describe('storage', () => {
       bikeWeight: 28
     };
 
-    saveSettings(settings);
+    expect(saveSettings(settings)).toBe(true);
 
     expect(hasCustomSettings()).toBe(true);
     expect(JSON.parse(localStorage.getItem('ebike-settings') ?? '{}')).toEqual(
       settings
     );
+  });
+
+  /** Saving unchanged example values should not count as custom user data. */
+  it('markiert unveraenderte Beispieldaten nicht als eigene Daten', () => {
+    expect(saveSettings(DEFAULT_SETTINGS)).toBe(false);
+
+    expect(hasCustomSettings()).toBe(false);
+    expect(loadSettings()).toEqual(DEFAULT_SETTINGS);
   });
 
   /** Saved settings should be returned unchanged when they are valid. */
@@ -75,14 +81,5 @@ describe('storage', () => {
 
     expect(loadSettings()).toEqual(DEFAULT_SETTINGS);
     expect(hasCustomSettings()).toBe(false);
-  });
-
-  /** The welcome flag is stored separately from calculator settings. */
-  it('speichert den Willkommen-Status', () => {
-    expect(hasSeenWelcome()).toBe(false);
-
-    saveWelcomeSeen();
-
-    expect(hasSeenWelcome()).toBe(true);
   });
 });

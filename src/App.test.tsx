@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App';
@@ -20,6 +20,23 @@ function setNavigatorLanguage(language: string): void {
   });
 }
 
+/** Makes the current test environment look like a mobile browser. */
+function mockMobileBrowser(): void {
+  Object.defineProperty(window, 'matchMedia', {
+    configurable: true,
+    value: vi.fn((query: string) => ({
+      matches: query.includes('hover: none') || query.includes('pointer: coarse'),
+      media: query,
+      onchange: null,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn()
+    }))
+  });
+}
+
 /**
  * Integration-style tests for the full App component.
  *
@@ -33,20 +50,33 @@ describe('App', () => {
     setNavigatorLanguage('de-DE');
   });
 
-  /** Verifies the first-run modal and the persisted "seen" flag. */
-  it('zeigt das Willkommen-Popup und blendet es aus', async () => {
+  /** Verifies the sample-data modal can be dismissed for the current session. */
+  it('zeigt das Beispieldaten-Popup und blendet es aus', async () => {
     const user = userEvent.setup();
 
     render(<App />);
 
-    expect(screen.getByRole('dialog', { name: 'Willkommen' })).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Beispieldaten' })).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Verstanden' }));
 
     expect(
-      screen.queryByRole('dialog', { name: 'Willkommen' })
+      screen.queryByRole('dialog', { name: 'Beispieldaten' })
     ).not.toBeInTheDocument();
-    expect(localStorage.getItem('ebike-welcome-seen')).toBe('true');
+    expect(localStorage.length).toBe(0);
+  });
+
+  /** The sample-data modal should reappear on a new app start until settings are saved. */
+  it('zeigt das Beispieldaten-Popup bei jedem Start ohne eigene Daten', async () => {
+    const user = userEvent.setup();
+    const firstRender = render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Verstanden' }));
+    firstRender.unmount();
+
+    render(<App />);
+
+    expect(screen.getByRole('dialog', { name: 'Beispieldaten' })).toBeInTheDocument();
   });
 
   /** Verifies the default calculator screen and default range output. */
@@ -70,7 +100,7 @@ describe('App', () => {
     expect(
       screen.getByRole('heading', { name: 'E-Bike Battery Calculator' })
     ).toBeInTheDocument();
-    expect(screen.getByRole('dialog', { name: 'Welcome' })).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Sample data' })).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Got it' }));
 
@@ -143,6 +173,52 @@ describe('App', () => {
     fireEvent.change(supportSlider, { target: { value: '4' } });
 
     const resultCard = screen.getByLabelText('Ergebnis der Reichweitenberechnung');
-    expect(within(resultCard).getByText('34 km')).toBeInTheDocument();
+    expect(within(resultCard).getByText('40 km')).toBeInTheDocument();
+  });
+
+  /** 0% support should show that the battery is not consumed. */
+  it('zeigt bei minimaler Unterstuetzung unbegrenzte Akku-Reichweite', async () => {
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Verstanden' }));
+    const supportSlider = screen.getByRole('slider', { name: 'Unterstützung' });
+    fireEvent.change(supportSlider, { target: { value: '1' } });
+
+    const resultCard = screen.getByLabelText('Ergebnis der Reichweitenberechnung');
+    expect(
+      within(resultCard).getByLabelText('Unbegrenzte Akku-Reichweite')
+    ).toBeInTheDocument();
+    expect(
+      within(resultCard).getByText('0% Unterstützung: Der Akku wird nicht verbraucht.')
+    ).toBeInTheDocument();
+  });
+
+  /** Mobile browsers that expose PWA installation should get a yes/no prompt. */
+  it('zeigt auf Mobilgeraeten eine Installationsabfrage', async () => {
+    const user = userEvent.setup();
+    mockMobileBrowser();
+
+    render(<App />);
+
+    const installEvent = Object.assign(new Event('beforeinstallprompt'), {
+      platforms: ['web'],
+      prompt: vi.fn().mockResolvedValue(undefined),
+      userChoice: Promise.resolve({ outcome: 'dismissed', platform: 'web' })
+    });
+
+    fireEvent(window, installEvent);
+    await user.click(screen.getByRole('button', { name: 'Verstanden' }));
+
+    expect(screen.getByRole('dialog', { name: 'App installieren?' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Ja' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Nein' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Nein' }));
+
+    expect(
+      screen.queryByRole('dialog', { name: 'App installieren?' })
+    ).not.toBeInTheDocument();
   });
 });

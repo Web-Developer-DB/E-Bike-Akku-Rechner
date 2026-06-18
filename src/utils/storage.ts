@@ -18,9 +18,6 @@ const SETTINGS_KEY = 'ebike-settings';
 /** Separate flag that tells the UI whether data came from the user or defaults. */
 const CUSTOM_SETTINGS_KEY = 'ebike-has-custom-settings';
 
-/** Key used to show the welcome modal only once. */
-const WELCOME_KEY = 'ebike-welcome-seen';
-
 /**
  * Safely returns browser localStorage.
  *
@@ -73,6 +70,17 @@ function isCalculatorSettings(value: unknown): value is CalculatorSettings {
   );
 }
 
+/** Returns true when saved settings differ from the built-in example values. */
+function hasCustomValues(settings: CalculatorSettings): boolean {
+  return (
+    settings.batteryCapacity !== DEFAULT_SETTINGS.batteryCapacity ||
+    settings.riderWeight !== DEFAULT_SETTINGS.riderWeight ||
+    settings.bikeWeight !== DEFAULT_SETTINGS.bikeWeight ||
+    settings.terrain !== DEFAULT_SETTINGS.terrain ||
+    settings.assist !== DEFAULT_SETTINGS.assist
+  );
+}
+
 /** Removes invalid data so future app starts can return to the default state. */
 function clearInvalidSettings(storage: Storage): void {
   storage.removeItem(SETTINGS_KEY);
@@ -113,16 +121,24 @@ export function loadSettings(): CalculatorSettings {
   return { ...DEFAULT_SETTINGS };
 }
 
-/** Saves valid calculator settings and marks the app as using custom data. */
-export function saveSettings(settings: CalculatorSettings): void {
+/** Saves valid calculator settings and returns whether they are custom data. */
+export function saveSettings(settings: CalculatorSettings): boolean {
   const storage = getStorage();
+  const hasCustomData = hasCustomValues(settings);
 
   if (!storage) {
-    return;
+    return hasCustomData;
   }
 
   storage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-  storage.setItem(CUSTOM_SETTINGS_KEY, 'true');
+
+  if (hasCustomData) {
+    storage.setItem(CUSTOM_SETTINGS_KEY, 'true');
+  } else {
+    storage.removeItem(CUSTOM_SETTINGS_KEY);
+  }
+
+  return hasCustomData;
 }
 
 /** Returns true when the user has saved their own settings at least once. */
@@ -134,26 +150,4 @@ export function hasCustomSettings(): boolean {
   }
 
   return storage.getItem(CUSTOM_SETTINGS_KEY) === 'true';
-}
-
-/** Returns true when the welcome modal has already been accepted. */
-export function hasSeenWelcome(): boolean {
-  const storage = getStorage();
-
-  if (!storage) {
-    return false;
-  }
-
-  return storage.getItem(WELCOME_KEY) === 'true';
-}
-
-/** Persists that the welcome modal should not appear again. */
-export function saveWelcomeSeen(): void {
-  const storage = getStorage();
-
-  if (!storage) {
-    return;
-  }
-
-  storage.setItem(WELCOME_KEY, 'true');
 }

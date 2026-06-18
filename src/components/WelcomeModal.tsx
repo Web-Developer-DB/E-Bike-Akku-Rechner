@@ -1,16 +1,16 @@
 import { CheckCircle2 } from 'lucide-react';
 import type { AppTranslations } from '../i18n';
 
-/** Props for the first-run welcome dialog. */
+/** Props for the sample-data notice dialog. */
 interface WelcomeModalProps {
   onClose: () => void;
   t: AppTranslations;
 }
 
 /**
- * One-time welcome modal.
+ * Sample-data notice modal.
  *
- * The modal explains that default sample data is used until the user enters
+ * The modal explains that default sample data is used until the user saves
  * personal values in settings. App.tsx decides whether it should be visible.
  */
 export function WelcomeModal({ onClose, t }: WelcomeModalProps) {

@@ -25,12 +25,13 @@ Aus diesen Angaben berechnet die App eine geschätzte Reichweite und einen reali
 ### Funktionen
 
 - Zwei Screens: Reichweitenrechner und Einstellungen
-- Willkommen-Dialog beim ersten Start
+- Beispieldaten-Hinweis bei jedem Start, bis eigene Daten gespeichert wurden
 - Standardwerte für sofortige Beispielberechnung
 - Speichern eigener Werte im `localStorage`
 - Live-Aktualisierung der Reichweite beim Ändern der Slider
 - Offline-Nutzung über Service Worker
 - Installierbarkeit als PWA
+- Installationsabfrage auf mobilen Browsern, wenn der Browser die PWA-Installation anbietet
 - Mobile-first Layout für kleine Smartphone-Bildschirme
 - Einheitliche Line-Icons mit `lucide-react`
 - Automatische Sprache: Deutsch für `de-*` Browser-Lokalisierungen, Englisch für alle anderen
@@ -84,7 +85,8 @@ Die Tests prüfen:
 - ob Werte korrekt gerundet werden
 - ob Einstellungen im `localStorage` gespeichert und geladen werden
 - ob fehlerhafte gespeicherte Daten abgefangen werden
-- ob der Willkommen-Dialog funktioniert
+- ob der Beispieldaten-Hinweis funktioniert
+- ob die mobile Installationsabfrage angezeigt werden kann
 - ob Einstellungen geöffnet und gespeichert werden können
 - ob die Reichweite live aktualisiert wird
 
@@ -119,42 +121,57 @@ Reichweite = Akkukapazität / Endverbrauch
 Endverbrauch:
 
 ```text
-Endverbrauch = Basisverbrauch × Geländefaktor × Gewichtsfaktor
+Endverbrauch = (Flachverbrauch bei voller Unterstützung + Kletterverbrauch bei voller Unterstützung) × Motoranteil
 ```
 
-Basisverbrauch nach Unterstützungsstufe:
+Flachverbrauch bei voller Unterstützung:
 
-| Stufe | Verbrauch |
+```text
+18 Wh/km bei 105 kg Gesamtgewicht
+```
+
+Geschätzte positive Höhenmeter pro Kilometer:
+
+| Gelände | Höhenmeter/km |
 | --- | ---: |
-| Eco | 7 Wh/km |
-| Tour | 9 Wh/km |
-| Sport | 12 Wh/km |
-| Turbo | 16 Wh/km |
-| Max | 20 Wh/km |
+| Flach | 0 m |
+| Leicht bergig | 8 m |
+| Bergig | 20 m |
+| Stark bergig | 40 m |
+| Extrem bergig | 65 m |
 
-Geländefaktoren:
-
-| Gelände | Faktor |
-| --- | ---: |
-| Flach | 1.0 |
-| Leicht bergig | 1.15 |
-| Bergig | 1.35 |
-| Stark bergig | 1.65 |
-| Extrem bergig | 2.0 |
-
-Gewichtsfaktor:
+Gewicht und Flachverbrauch:
 
 ```text
 Gesamtgewicht = Fahrergewicht + Fahrradgewicht
-Gewichtsfaktor = Gesamtgewicht / 105
+Flach-Gewichtsfaktor = 1 + (Gesamtgewicht / 105 - 1) × 0.3
 ```
 
-Der Gewichtsfaktor wird begrenzt:
+Der Flach-Gewichtsfaktor wird begrenzt:
 
 ```text
 Minimum: 0.85
-Maximum: 1.35
+Maximum: 1.2
 ```
+
+Kletterverbrauch:
+
+```text
+Mechanische Höhenenergie = Gesamtgewicht × 9.81 × Höhenmeter pro km / 3600
+Kletterverbrauch bei voller Unterstützung = Mechanische Höhenenergie / 0.85
+```
+
+Motoranteil nach Unterstützungsstufe:
+
+| Stufe | Motoranteil |
+| --- | ---: |
+| Minimal | 0% |
+| Stufe 2 | 25% |
+| Stufe 3 | 50% |
+| Stufe 4 | 75% |
+| Maximal | 100% |
+
+Bei 0% Unterstützung wird der Akku rechnerisch nicht verbraucht. Die App zeigt dann eine unbegrenzte Akku-Reichweite an.
 
 Realistischer Bereich:
 
@@ -179,11 +196,13 @@ Wichtige Stellen in `calculateRange.ts`:
 
 | Code-Stelle | Bedeutung |
 | --- | --- |
-| `BASE_CONSUMPTION` | Grundverbrauch pro Unterstützungsstufe in Wh/km |
-| `TERRAIN_FACTOR` | Multiplikator pro Gelände-Stufe |
-| `REFERENCE_WEIGHT_KG` | Referenzgewicht für den neutralen Gewichtsfaktor |
-| `MIN_WEIGHT_FACTOR` | Untere Begrenzung für sehr geringes Gewicht |
-| `MAX_WEIGHT_FACTOR` | Obere Begrenzung für sehr hohes Gewicht |
+| `FULL_SUPPORT_FLAT_CONSUMPTION_WH_PER_KM` | Flachverbrauch bei voller Motorunterstützung in Wh/km |
+| `ELEVATION_GAIN_M_PER_KM` | Geschätzte positive Höhenmeter pro Gelände-Stufe |
+| `ASSISTANCE_MOTOR_SHARE` | Motoranteil pro Unterstützungsstufe |
+| `GRAVITY_M_PER_SECOND_SQUARED` | Erdbeschleunigung für die Höhenenergie |
+| `MOTOR_EFFICIENCY` | Wirkungsgrad für Umrechnung von mechanischer in Akku-Energie |
+| `REFERENCE_WEIGHT_KG` | Referenzgewicht für den neutralen Flach-Gewichtsfaktor |
+| `FLAT_WEIGHT_INFLUENCE` | Gewichtseinfluss auf den Flachverbrauch |
 | `calculateRange(settings)` | Hauptfunktion, die Reichweite, Minimum und Maximum berechnet |
 
 Wenn die Formel geändert werden soll:
@@ -196,16 +215,10 @@ Wenn die Formel geändert werden soll:
 6. Führe `npm run build` aus.
 7. Aktualisiere diesen README-Abschnitt, wenn sich Formel, Faktoren oder Rundung ändern.
 
-Beispiel: Wenn die Tour-Stufe sparsamer werden soll, wird nur dieser Wert geändert:
+Beispiel: Wenn volle Motorunterstützung auf flacher Strecke sparsamer werden soll, wird nur dieser Wert geändert:
 
 ```ts
-const BASE_CONSUMPTION: Record<AssistLevel, number> = {
-  1: 7,
-  2: 8.5,
-  3: 12,
-  4: 16,
-  5: 20
-};
+const FULL_SUPPORT_FLAT_CONSUMPTION_WH_PER_KM = 17;
 ```
 
 Danach müssen die erwarteten Reichweiten in den Tests neu berechnet werden.
@@ -227,12 +240,15 @@ Beim ersten Start nutzt die App diese Werte:
 | Fahrergewicht | 80 kg |
 | Fahrradgewicht | 25 kg |
 | Gelände | Leicht bergig |
-| Unterstützung | Tour |
+| Unterstützung | 50% |
 
 Diese Werte ergeben:
 
 ```text
-625 / (9 × 1.15 × 1.0) = 60.38 km
+Flachverbrauch bei voller Unterstützung = 18 Wh/km
+Kletterverbrauch bei voller Unterstützung = (105 × 9.81 × 8 / 3600) / 0.85 = 2.69 Wh/km
+Endverbrauch = (18 + 2.69) × 0.5 = 10.35 Wh/km
+625 / 10.35 = 60.41 km
 Gerundet: 60 km
 Realistisch: 51 - 69 km
 ```
@@ -244,7 +260,6 @@ Die App nutzt ausschließlich `localStorage`.
 Gespeichert werden:
 
 - persönliche Einstellungen
-- ob der Willkommen-Dialog bereits bestätigt wurde
 - ob eigene Einstellungen gespeichert wurden
 
 Es gibt:
@@ -275,8 +290,11 @@ Die PWA-Funktionen bestehen aus:
 - [public/sw.js](public/sw.js)
 - App-Icons in `public/`
 - Service-Worker-Registrierung in [src/main.tsx](src/main.tsx)
+- Installationsabfrage in [src/components/InstallPromptModal.tsx](src/components/InstallPromptModal.tsx)
 
 Der Service Worker speichert die App-Shell und wichtige Assets im Cache. Dadurch bleibt die App nach dem ersten Laden grundsätzlich offline nutzbar.
+
+Hinweis: Browser erlauben Webseiten nicht, beim tatsächlichen Schließen einer mobilen Seite ein eigenes Installations-Popup zu erzwingen. Die App nutzt deshalb das offizielle `beforeinstallprompt`-Ereignis und zeigt die Ja/Nein-Abfrage, sobald der Browser die Installation anbietet.
 
 ### Projektstruktur
 
@@ -290,6 +308,7 @@ src/
     SliderCard.tsx
     ResultCard.tsx
     WelcomeModal.tsx
+    InstallPromptModal.tsx
   i18n.ts
   styles/
     global.css
@@ -312,7 +331,8 @@ Wichtige Dateien:
 | `src/components/Settings.tsx` | Formular zum Speichern eigener Werte |
 | `src/components/SliderCard.tsx` | Wiederverwendbare Slider-Karte |
 | `src/components/ResultCard.tsx` | Darstellung der berechneten Reichweite |
-| `src/components/WelcomeModal.tsx` | Einmaliger Willkommen-Dialog |
+| `src/components/WelcomeModal.tsx` | Beispieldaten-Hinweis, bis eigene Daten gespeichert sind |
+| `src/components/InstallPromptModal.tsx` | Ja/Nein-Dialog für die PWA-Installation |
 | `src/i18n.ts` | Übersetzungen und Browser-Locale-Erkennung |
 | `src/utils/calculateRange.ts` | Reine Berechnungslogik und zentrale Formel für die Reichweite |
 | `src/utils/calculateRange.test.ts` | Tests für Formel, Faktoren, Rundung und Plausibilität |
@@ -363,12 +383,13 @@ The target audience includes leisure riders, senior users, and people who do not
 ### Features
 
 - Two screens: range calculator and settings
-- First-run welcome dialog
+- Sample-data notice on every start until user settings are saved
 - Default example values for immediate use
 - User settings stored in `localStorage`
 - Live range updates when sliders change
 - Offline support through a service worker
 - Installable as a PWA
+- Installation question on mobile browsers when the browser offers PWA installation
 - Mobile-first layout for small smartphone screens
 - Consistent line icons via `lucide-react`
 - Automatic language selection: German for `de-*` browser locales, English for all others
@@ -422,7 +443,8 @@ The tests verify that:
 - values are rounded correctly
 - settings are saved to and loaded from `localStorage`
 - invalid stored data is handled safely
-- the welcome dialog works
+- the sample-data notice works
+- the mobile installation question can be shown
 - settings can be opened and saved
 - the range updates live
 
@@ -457,42 +479,57 @@ Range = battery capacity / final consumption
 Final consumption:
 
 ```text
-Final consumption = base consumption × terrain factor × weight factor
+Final consumption = (full-support flat consumption + full-support climbing consumption) × motor share
 ```
 
-Base consumption by assistance level:
+Flat consumption at full assistance:
 
-| Level | Consumption |
+```text
+18 Wh/km at 105 kg total weight
+```
+
+Estimated positive elevation gain per kilometer:
+
+| Terrain | Elevation gain/km |
 | --- | ---: |
-| Eco | 7 Wh/km |
-| Tour | 9 Wh/km |
-| Sport | 12 Wh/km |
-| Turbo | 16 Wh/km |
-| Max | 20 Wh/km |
+| Flat | 0 m |
+| Slightly hilly | 8 m |
+| Hilly | 20 m |
+| Very hilly | 40 m |
+| Extremely hilly | 65 m |
 
-Terrain factors:
-
-| Terrain | Factor |
-| --- | ---: |
-| Flat | 1.0 |
-| Slightly hilly | 1.15 |
-| Hilly | 1.35 |
-| Very hilly | 1.65 |
-| Extremely hilly | 2.0 |
-
-Weight factor:
+Weight and flat consumption:
 
 ```text
 Total weight = rider weight + bike weight
-Weight factor = total weight / 105
+Flat weight factor = 1 + (total weight / 105 - 1) × 0.3
 ```
 
-The weight factor is clamped:
+The flat weight factor is clamped:
 
 ```text
 Minimum: 0.85
-Maximum: 1.35
+Maximum: 1.2
 ```
+
+Climbing consumption:
+
+```text
+Mechanical elevation energy = total weight × 9.81 × elevation gain per km / 3600
+Full-support climbing consumption = Mechanical elevation energy / 0.85
+```
+
+Motor share by assistance level:
+
+| Level | Motor share |
+| --- | ---: |
+| Minimal | 0% |
+| Level 2 | 25% |
+| Level 3 | 50% |
+| Level 4 | 75% |
+| Maximum | 100% |
+
+At 0% assistance, the battery is mathematically not consumed. The app then shows unlimited battery range.
 
 Realistic range:
 
@@ -517,11 +554,13 @@ Important parts in `calculateRange.ts`:
 
 | Code location | Meaning |
 | --- | --- |
-| `BASE_CONSUMPTION` | Base consumption per assistance level in Wh/km |
-| `TERRAIN_FACTOR` | Multiplier for each terrain level |
-| `REFERENCE_WEIGHT_KG` | Reference weight for the neutral weight factor |
-| `MIN_WEIGHT_FACTOR` | Lower clamp for very light setups |
-| `MAX_WEIGHT_FACTOR` | Upper clamp for very heavy setups |
+| `FULL_SUPPORT_FLAT_CONSUMPTION_WH_PER_KM` | Flat consumption at full motor assistance in Wh/km |
+| `ELEVATION_GAIN_M_PER_KM` | Estimated positive elevation gain for each terrain level |
+| `ASSISTANCE_MOTOR_SHARE` | Motor share for each assistance level |
+| `GRAVITY_M_PER_SECOND_SQUARED` | Gravity constant for elevation energy |
+| `MOTOR_EFFICIENCY` | Efficiency for converting mechanical energy to battery energy |
+| `REFERENCE_WEIGHT_KG` | Reference weight for the neutral flat weight factor |
+| `FLAT_WEIGHT_INFLUENCE` | Weight influence on flat consumption |
 | `calculateRange(settings)` | Main function that calculates range, minimum, and maximum |
 
 If the formula needs to change:
@@ -534,16 +573,10 @@ If the formula needs to change:
 6. Run `npm run build`.
 7. Update this README section if the formula, factors, or rounding behavior changes.
 
-Example: If Tour mode should consume less energy, only this value changes:
+Example: If full motor assistance should consume less on flat ground, only this value changes:
 
 ```ts
-const BASE_CONSUMPTION: Record<AssistLevel, number> = {
-  1: 7,
-  2: 8.5,
-  3: 12,
-  4: 16,
-  5: 20
-};
+const FULL_SUPPORT_FLAT_CONSUMPTION_WH_PER_KM = 17;
 ```
 
 After that, the expected ranges in the tests must be recalculated.
@@ -565,12 +598,15 @@ The app starts with these values:
 | Rider weight | 80 kg |
 | Bike weight | 25 kg |
 | Terrain | Slightly hilly |
-| Assistance | Tour |
+| Assistance | 50% |
 
 These values produce:
 
 ```text
-625 / (9 × 1.15 × 1.0) = 60.38 km
+Full-support flat consumption = 18 Wh/km
+Full-support climbing consumption = (105 × 9.81 × 8 / 3600) / 0.85 = 2.69 Wh/km
+Final consumption = (18 + 2.69) × 0.5 = 10.35 Wh/km
+625 / 10.35 = 60.41 km
 Rounded: 60 km
 Realistic: 51 - 69 km
 ```
@@ -582,7 +618,6 @@ The app only uses `localStorage`.
 It stores:
 
 - personal settings
-- whether the welcome dialog has already been accepted
 - whether custom settings have been saved
 
 There is:
@@ -613,8 +648,11 @@ The PWA behavior is implemented with:
 - [public/sw.js](public/sw.js)
 - app icons in `public/`
 - service-worker registration in [src/main.tsx](src/main.tsx)
+- installation question in [src/components/InstallPromptModal.tsx](src/components/InstallPromptModal.tsx)
 
 The service worker caches the app shell and important static assets. After the first load, the app can be opened offline in normal use.
+
+Note: Browsers do not allow websites to force a custom installation popup while a mobile page is actually closing. The app therefore uses the official `beforeinstallprompt` event and shows the yes/no question when the browser offers installation.
 
 ### Project Structure
 
@@ -628,6 +666,7 @@ src/
     SliderCard.tsx
     ResultCard.tsx
     WelcomeModal.tsx
+    InstallPromptModal.tsx
   i18n.ts
   styles/
     global.css
@@ -650,7 +689,8 @@ Important files:
 | `src/components/Settings.tsx` | Form for saving user values |
 | `src/components/SliderCard.tsx` | Reusable slider card component |
 | `src/components/ResultCard.tsx` | Displays the calculated range |
-| `src/components/WelcomeModal.tsx` | First-run welcome dialog |
+| `src/components/WelcomeModal.tsx` | Sample-data notice until user settings are saved |
+| `src/components/InstallPromptModal.tsx` | Yes/no dialog for PWA installation |
 | `src/i18n.ts` | Translations and browser-locale detection |
 | `src/utils/calculateRange.ts` | Pure calculation logic and central range formula |
 | `src/utils/calculateRange.test.ts` | Tests for formula, factors, rounding, and plausibility |

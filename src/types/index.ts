@@ -9,7 +9,7 @@
 /** Terrain and assistance sliders both use five fixed levels. */
 export type TerrainLevel = 1 | 2 | 3 | 4 | 5;
 
-/** The assistance level maps directly to one base consumption value. */
+/** The assistance level maps to a percentage share supplied by the motor. */
 export type AssistLevel = 1 | 2 | 3 | 4 | 5;
 
 /** All user-controlled values that influence the range calculation. */
@@ -21,12 +21,24 @@ export interface CalculatorSettings {
   assist: AssistLevel;
 }
 
-/** Rounded result values shown in the result card. */
-export interface RangeResult {
+/** Rounded finite result values shown in the result card. */
+interface EstimatedRangeResult {
   range: number;
   minRange: number;
   maxRange: number;
+  isUnlimited: false;
 }
+
+/** Result for 0% assistance, where the battery is not consumed. */
+interface UnlimitedRangeResult {
+  range: null;
+  minRange: null;
+  maxRange: null;
+  isUnlimited: true;
+}
+
+/** Rounded result values shown in the result card. */
+export type RangeResult = EstimatedRangeResult | UnlimitedRangeResult;
 
 /** Generic shape for localized slider options. */
 export interface Option<TValue extends number> {
@@ -40,5 +52,5 @@ export const DEFAULT_SETTINGS: CalculatorSettings = {
   riderWeight: 80,
   bikeWeight: 25,
   terrain: 2,
-  assist: 2
+  assist: 3
 };

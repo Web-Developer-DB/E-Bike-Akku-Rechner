@@ -97,7 +97,8 @@ button {
 /* Shared action button base for navigation and save actions. */
 .settings-button,
 .back-button,
-.primary-button {
+.primary-button,
+.secondary-button {
   min-height: 48px;
   border: 0;
   border-radius: 8px;
@@ -106,10 +107,12 @@ button {
 
 /* Secondary white buttons used for navigation-like actions. */
 .settings-button,
-.back-button {
+.back-button,
+.secondary-button {
   display: inline-flex;
   flex-shrink: 0;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   padding: 12px 14px;
   color: #00796b;
@@ -120,6 +123,11 @@ button {
 /* Back button uses the main text color because it is less brand-heavy. */
 .back-button {
   color: #1f2933;
+}
+
+/* Full-width secondary action used beside a primary modal action. */
+.secondary-button {
+  width: 100%;
 }
 
 /* Standard size for Lucide icons inside text buttons. */
@@ -397,7 +405,7 @@ button {
   margin-top: 4px;
 }
 
-/* Full-screen overlay behind the welcome dialog. */
+/* Full-screen overlay behind modal dialogs. */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -428,6 +436,13 @@ button {
   margin: 0 0 12px;
   color: #43505c;
   font-size: 1.06rem;
+}
+
+/* Vertical action group for modal choices. */
+.modal-actions {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
 }
 
 /*

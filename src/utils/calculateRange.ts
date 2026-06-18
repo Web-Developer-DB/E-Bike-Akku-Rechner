@@ -7,38 +7,85 @@ import type { AssistLevel, CalculatorSettings, RangeResult, TerrainLevel } from 
  * business rule easy to test, reuse, and audit without rendering the UI.
  */
 
-/** Base battery consumption in watt-hours per kilometer for each support mode. */
-const BASE_CONSUMPTION: Record<AssistLevel, number> = {
-  1: 7,
-  2: 9,
-  3: 12,
-  4: 16,
-  5: 20
+/** Full motor support on flat ground at reference weight, in watt-hours per km. */
+const FULL_SUPPORT_FLAT_CONSUMPTION_WH_PER_KM = 18;
+
+/** Estimated positive elevation gain per kilometer for each terrain level. */
+const ELEVATION_GAIN_M_PER_KM: Record<TerrainLevel, number> = {
+  1: 0,
+  2: 8,
+  3: 20,
+  4: 40,
+  5: 65
 };
 
-/** Terrain multiplier. Higher terrain levels increase energy consumption. */
-const TERRAIN_FACTOR: Record<TerrainLevel, number> = {
-  1: 1,
-  2: 1.15,
-  3: 1.35,
-  4: 1.65,
-  5: 2
+/** Percentage of riding energy supplied by the motor for each assistance level. */
+const ASSISTANCE_MOTOR_SHARE: Record<AssistLevel, number> = {
+  1: 0,
+  2: 0.25,
+  3: 0.5,
+  4: 0.75,
+  5: 1
 };
 
-/** The formula treats 105 kg total rider+bike weight as the neutral baseline. */
+/** Physics constants used for the climbing-energy calculation. */
+const GRAVITY_M_PER_SECOND_SQUARED = 9.81;
+const WATT_SECONDS_PER_WATT_HOUR = 3600;
+const MOTOR_EFFICIENCY = 0.85;
+
+/** The flat-road formula treats 105 kg total rider+bike weight as neutral. */
 const REFERENCE_WEIGHT_KG = 105;
 
-/** Clamp limits keep very light or very heavy inputs within a realistic band. */
-const MIN_WEIGHT_FACTOR = 0.85;
-const MAX_WEIGHT_FACTOR = 1.35;
+/** Weight only mildly changes flat consumption; climbing handles mass directly. */
+const FLAT_WEIGHT_INFLUENCE = 0.3;
+const MIN_FLAT_WEIGHT_FACTOR = 0.85;
+const MAX_FLAT_WEIGHT_FACTOR = 1.2;
 
 /**
  * Restricts a numeric value to a safe minimum and maximum.
  *
- * Example: clamp(1.5, 0.85, 1.35) returns 1.35.
+ * Example: clamp(1.5, 0.85, 1.2) returns 1.2.
  */
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
+}
+
+/**
+ * Estimates flat-road consumption when the motor supplies all riding energy.
+ *
+ * Weight matters through rolling resistance, but not as strongly as it does when
+ * lifting rider and bike uphill.
+ */
+function calculateFullSupportFlatConsumption(totalWeight: number): number {
+  const weightRatio = totalWeight / REFERENCE_WEIGHT_KG;
+  const weightFactor = clamp(
+    1 + (weightRatio - 1) * FLAT_WEIGHT_INFLUENCE,
+    MIN_FLAT_WEIGHT_FACTOR,
+    MAX_FLAT_WEIGHT_FACTOR
+  );
+
+  return FULL_SUPPORT_FLAT_CONSUMPTION_WH_PER_KM * weightFactor;
+}
+
+/**
+ * Calculates the battery energy needed to lift rider and bike uphill at full
+ * motor assistance.
+ *
+ * The terrain slider stands in for unknown GPS data by estimating positive
+ * elevation gain per kilometer. Descending is not subtracted because normal
+ * e-bikes usually do not recover meaningful energy.
+ */
+function calculateFullSupportClimbingConsumption(
+  terrain: TerrainLevel,
+  totalWeight: number
+): number {
+  const mechanicalWhPerKm =
+    (totalWeight *
+      GRAVITY_M_PER_SECOND_SQUARED *
+      ELEVATION_GAIN_M_PER_KM[terrain]) /
+    WATT_SECONDS_PER_WATT_HOUR;
+
+  return mechanicalWhPerKm / MOTOR_EFFICIENCY;
 }
 
 /**
@@ -49,19 +96,22 @@ function clamp(value: number, min: number, max: number): number {
  */
 export function calculateRange(settings: CalculatorSettings): RangeResult {
   const totalWeight = settings.riderWeight + settings.bikeWeight;
+  const motorShare = ASSISTANCE_MOTOR_SHARE[settings.assist];
 
-  /** Weight influences consumption, but the clamp prevents extreme jumps. */
-  const weightFactor = clamp(
-    totalWeight / REFERENCE_WEIGHT_KG,
-    MIN_WEIGHT_FACTOR,
-    MAX_WEIGHT_FACTOR
-  );
+  if (motorShare === 0) {
+    return {
+      range: null,
+      minRange: null,
+      maxRange: null,
+      isUnlimited: true
+    };
+  }
 
-  /** Final consumption combines riding mode, terrain, and total weight. */
+  /** The support slider decides which share of total riding energy the motor pays. */
   const endConsumption =
-    BASE_CONSUMPTION[settings.assist] *
-    TERRAIN_FACTOR[settings.terrain] *
-    weightFactor;
+    (calculateFullSupportFlatConsumption(totalWeight) +
+      calculateFullSupportClimbingConsumption(settings.terrain, totalWeight)) *
+    motorShare;
 
   const range = settings.batteryCapacity / endConsumption;
 
@@ -69,6 +119,7 @@ export function calculateRange(settings: CalculatorSettings): RangeResult {
   return {
     range: Math.round(range),
     minRange: Math.round(range * 0.85),
-    maxRange: Math.round(range * 1.15)
+    maxRange: Math.round(range * 1.15),
+    isUnlimited: false
   };
 }
