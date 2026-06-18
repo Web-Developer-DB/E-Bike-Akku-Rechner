@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <!-- Scalable PWA icon used by browsers that support SVG app icons. -->
+  <title id="title">E-Bike Akku-Rechner</title>
+  <rect width="512" height="512" rx="96" fill="#00A884"/>
+  <circle cx="164" cy="332" r="64" fill="#F5FAF8"/>
+  <circle cx="348" cy="332" r="64" fill="#F5FAF8"/>
+  <path d="M164 332h68l42-82h-58l42 82h90" fill="none" stroke="#1F2933" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M242 202h72c24 0 43 19 43 43v6h-49v-10h-66z" fill="#F5FAF8"/>
+  <path d="M205 188h43" stroke="#1F2933" stroke-width="24" stroke-linecap="round"/>
+  <path d="M315 175l30 34" stroke="#1F2933" stroke-width="22" stroke-linecap="round"/>
+  <path d="M128 124h190c18 0 32 14 32 32v54H96v-54c0-18 14-32 32-32z" fill="#F5FAF8"/>
+  <path d="M351 150h34c12 0 22 10 22 22s-10 22-22 22h-34z" fill="#F5FAF8"/>
+  <path d="M137 168h164" stroke="#00A884" stroke-width="22" stroke-linecap="round"/>
+</svg>
