@@ -1,15 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { RangeCalculator } from './components/RangeCalculator';
+import { InstallPromptModal } from './components/InstallPromptModal';
 import { Settings } from './components/Settings';
 import { WelcomeModal } from './components/WelcomeModal';
 import { getPreferredLocale, TRANSLATIONS } from './i18n';
 import { calculateRange } from './utils/calculateRange';
 import {
   hasCustomSettings,
-  hasSeenWelcome,
   loadSettings,
-  saveSettings,
-  saveWelcomeSeen
+  saveSettings
 } from './utils/storage';
 import type { AssistLevel, CalculatorSettings, TerrainLevel } from './types';
 
@@ -18,11 +17,43 @@ import type { AssistLevel, CalculatorSettings, TerrainLevel } from './types';
  */
 type Screen = 'calculator' | 'settings';
 
+/** Browser event fired when a PWA install prompt can be shown. */
+interface BeforeInstallPromptEvent extends Event {
+  readonly platforms: string[];
+  readonly userChoice: Promise<{
+    outcome: 'accepted' | 'dismissed';
+    platform: string;
+  }>;
+  prompt: () => Promise<void>;
+}
+
+/** Detects mobile-like browsers without relying only on user-agent strings. */
+function isMobileLikeBrowser(): boolean {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    return false;
+  }
+
+  return window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+}
+
+/** Installed PWAs should not ask to install themselves again. */
+function isStandaloneApp(): boolean {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  return (
+    window.matchMedia?.('(display-mode: standalone)').matches === true ||
+    ('standalone' in window.navigator &&
+      (window.navigator as Navigator & { standalone?: boolean }).standalone === true)
+  );
+}
+
 /**
  * Root component for the entire app.
  *
  * App owns the central state: current screen, user settings, whether custom
- * data exists, and whether the welcome modal should be visible. Child
+ * data exists, and whether the sample-data modal should be visible. Child
  * components receive data and callbacks through props.
  */
 function App() {
@@ -41,8 +72,15 @@ function App() {
   /** Tells the calculator whether to show the sample-data or saved-data notice. */
   const [hasCustomData, setHasCustomData] = useState(() => hasCustomSettings());
 
-  /** Shows the welcome modal only when localStorage says it has not been seen. */
-  const [showWelcome, setShowWelcome] = useState(() => !hasSeenWelcome());
+  /** Shows the sample-data modal on every app start until custom data is saved. */
+  const [showSampleDataModal, setShowSampleDataModal] = useState(() => !hasCustomData);
+
+  /** Stores the browser-provided PWA install prompt until the user chooses. */
+  const [installPrompt, setInstallPrompt] =
+    useState<BeforeInstallPromptEvent | null>(null);
+
+  /** Controls the custom install question shown before calling the browser prompt. */
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
 
   /** Recalculates only when settings change, avoiding unnecessary work. */
   const result = useMemo(() => calculateRange(settings), [settings]);
@@ -64,10 +102,35 @@ function App() {
     }
   }, [locale, t.appTitle]);
 
-  /** Handles the "Verstanden" button in the welcome modal. */
-  function closeWelcome(): void {
-    saveWelcomeSeen();
-    setShowWelcome(false);
+  /** Captures the browser PWA install prompt on mobile-like browsers. */
+  useEffect(() => {
+    function handleBeforeInstallPrompt(event: Event): void {
+      if (!isMobileLikeBrowser() || isStandaloneApp()) {
+        return;
+      }
+
+      event.preventDefault();
+      setInstallPrompt(event as BeforeInstallPromptEvent);
+      setShowInstallPrompt(true);
+    }
+
+    function handleAppInstalled(): void {
+      setInstallPrompt(null);
+      setShowInstallPrompt(false);
+    }
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
+
+  /** Handles the "Verstanden" button in the sample-data modal. */
+  function closeSampleDataModal(): void {
+    setShowSampleDataModal(false);
   }
 
   /** Updates terrain immediately so the result can change live. */
@@ -82,10 +145,30 @@ function App() {
 
   /** Saves settings from the settings screen and returns to the calculator. */
   function handleSave(nextSettings: CalculatorSettings): void {
-    saveSettings(nextSettings);
+    const hasSavedCustomData = saveSettings(nextSettings);
+
     setSettings(nextSettings);
-    setHasCustomData(true);
+    setHasCustomData(hasSavedCustomData);
+    setShowSampleDataModal(false);
     setScreen('calculator');
+  }
+
+  /** Starts the browser-controlled PWA installation prompt. */
+  async function acceptInstallPrompt(): Promise<void> {
+    if (!installPrompt) {
+      setShowInstallPrompt(false);
+      return;
+    }
+
+    setShowInstallPrompt(false);
+    await installPrompt.prompt();
+    await installPrompt.userChoice.catch(() => undefined);
+    setInstallPrompt(null);
+  }
+
+  /** Closes the install question for the current page session only. */
+  function declineInstallPrompt(): void {
+    setShowInstallPrompt(false);
   }
 
   return (
@@ -110,7 +193,16 @@ function App() {
         />
       )}
 
-      {showWelcome ? <WelcomeModal onClose={closeWelcome} t={t} /> : null}
+      {showSampleDataModal ? (
+        <WelcomeModal onClose={closeSampleDataModal} t={t} />
+      ) : null}
+      {showInstallPrompt && !showSampleDataModal ? (
+        <InstallPromptModal
+          onAccept={acceptInstallPrompt}
+          onDecline={declineInstallPrompt}
+          t={t}
+        />
+      ) : null}
     </div>
   );
 }

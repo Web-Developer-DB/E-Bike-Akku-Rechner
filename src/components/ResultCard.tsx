@@ -26,10 +26,21 @@ export function ResultCard({ result, t }: ResultCardProps) {
         </span>
         <h2>{t.resultTitle}</h2>
       </div>
-      <p className="result-value">{result.range} km</p>
-      <p className="result-range">
-        {t.realisticLabel}: {result.minRange} - {result.maxRange} km
-      </p>
+      {result.isUnlimited ? (
+        <>
+          <p className="result-value" aria-label={t.unlimitedRangeLabel}>
+            &infin; km
+          </p>
+          <p className="result-range">{t.unlimitedRangeDetail}</p>
+        </>
+      ) : (
+        <>
+          <p className="result-value">{result.range} km</p>
+          <p className="result-range">
+            {t.realisticLabel}: {result.minRange} - {result.maxRange} km
+          </p>
+        </>
+      )}
       <p className="result-note">{t.resultNote}</p>
     </section>
   );

@@ -26,6 +26,8 @@ export interface AppTranslations {
   resultAriaLabel: string;
   resultTitle: string;
   realisticLabel: string;
+  unlimitedRangeLabel: string;
+  unlimitedRangeDetail: string;
   resultNote: string;
   noticeAriaLabel: string;
   customDataNotice: string;
@@ -40,6 +42,10 @@ export interface AppTranslations {
   welcomeTextLine1: string;
   welcomeTextLine2: string;
   welcomeTextLine3: string;
+  installPromptTitle: string;
+  installPromptText: string;
+  installPromptAccept: string;
+  installPromptDecline: string;
   terrainOptions: Option<TerrainLevel>[];
   assistOptions: Option<AssistLevel>[];
 }
@@ -59,6 +65,8 @@ const de: AppTranslations = {
   resultAriaLabel: 'Ergebnis der Reichweitenberechnung',
   resultTitle: 'Geschätzte Reichweite',
   realisticLabel: 'Realistisch',
+  unlimitedRangeLabel: 'Unbegrenzte Akku-Reichweite',
+  unlimitedRangeDetail: '0% Unterstützung: Der Akku wird nicht verbraucht.',
   resultNote:
     'Die tatsächliche Reichweite kann je nach Wetter, Fahrweise und Reifendruck abweichen.',
   noticeAriaLabel: 'Hinweis',
@@ -71,12 +79,18 @@ const de: AppTranslations = {
   batteryCapacityLabel: 'Akkukapazität',
   riderWeightLabel: 'Fahrergewicht',
   bikeWeightLabel: 'Fahrradgewicht',
-  welcomeTitle: 'Willkommen',
+  welcomeTitle: 'Beispieldaten',
   welcomeTextLine1:
-    'Diese App zeigt Ihnen sofort, wie weit Ihr E-Bike ungefähr kommt.',
-  welcomeTextLine2: 'Aktuell wird mit Beispieldaten gerechnet.',
+    'Die App rechnet aktuell mit Beispieldaten.',
+  welcomeTextLine2:
+    'Ihre Reichweite wird genauer, wenn Sie eigene Werte speichern.',
   welcomeTextLine3:
-    'Tippen Sie auf das Zahnrad, um Ihre eigenen Werte einzugeben.',
+    'Gehen Sie zu Einstellungen, um Akkugröße, Fahrergewicht und Fahrradgewicht zu ändern.',
+  installPromptTitle: 'App installieren?',
+  installPromptText:
+    'Möchten Sie den E-Bike Akku-Rechner auf diesem Gerät installieren?',
+  installPromptAccept: 'Ja',
+  installPromptDecline: 'Nein',
   terrainOptions: [
     { value: 1, label: 'Flach' },
     { value: 2, label: 'Leicht bergig' },
@@ -85,11 +99,11 @@ const de: AppTranslations = {
     { value: 5, label: 'Extrem bergig' }
   ],
   assistOptions: [
-    { value: 1, label: 'Eco' },
-    { value: 2, label: 'Tour' },
-    { value: 3, label: 'Sport' },
-    { value: 4, label: 'Turbo' },
-    { value: 5, label: 'Max' }
+    { value: 1, label: 'Minimal (0%)' },
+    { value: 2, label: '25%' },
+    { value: 3, label: '50%' },
+    { value: 4, label: '75%' },
+    { value: 5, label: 'Maximal (100%)' }
   ]
 };
 
@@ -108,6 +122,8 @@ const en: AppTranslations = {
   resultAriaLabel: 'Range calculation result',
   resultTitle: 'Estimated Range',
   realisticLabel: 'Realistic',
+  unlimitedRangeLabel: 'Unlimited battery range',
+  unlimitedRangeDetail: '0% assistance: the battery is not used.',
   resultNote:
     'Actual range may vary depending on weather, riding style, and tire pressure.',
   noticeAriaLabel: 'Notice',
@@ -119,11 +135,18 @@ const en: AppTranslations = {
   batteryCapacityLabel: 'Battery capacity',
   riderWeightLabel: 'Rider weight',
   bikeWeightLabel: 'Bike weight',
-  welcomeTitle: 'Welcome',
+  welcomeTitle: 'Sample data',
   welcomeTextLine1:
-    'This app instantly shows approximately how far your e-bike can go.',
-  welcomeTextLine2: 'It currently calculates with sample data.',
-  welcomeTextLine3: 'Tap the gear icon to enter your own values.',
+    'The app is currently calculating with sample data.',
+  welcomeTextLine2:
+    'Your range estimate becomes more accurate after you save your own values.',
+  welcomeTextLine3:
+    'Go to settings to change battery size, rider weight, and bike weight.',
+  installPromptTitle: 'Install app?',
+  installPromptText:
+    'Do you want to install the E-Bike Battery Calculator on this device?',
+  installPromptAccept: 'Yes',
+  installPromptDecline: 'No',
   terrainOptions: [
     { value: 1, label: 'Flat' },
     { value: 2, label: 'Slightly hilly' },
@@ -132,11 +155,11 @@ const en: AppTranslations = {
     { value: 5, label: 'Extremely hilly' }
   ],
   assistOptions: [
-    { value: 1, label: 'Eco' },
-    { value: 2, label: 'Tour' },
-    { value: 3, label: 'Sport' },
-    { value: 4, label: 'Turbo' },
-    { value: 5, label: 'Max' }
+    { value: 1, label: 'Minimal (0%)' },
+    { value: 2, label: '25%' },
+    { value: 3, label: '50%' },
+    { value: 4, label: '75%' },
+    { value: 5, label: 'Maximum (100%)' }
   ]
 };
 
