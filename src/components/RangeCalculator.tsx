@@ -1,6 +1,14 @@
-import { BatteryCharging, Info, Mountain, Settings as SettingsIcon } from 'lucide-react';
+import {
+  BatteryCharging,
+  BatteryFull,
+  Bike,
+  Info,
+  Mountain,
+  Settings as SettingsIcon,
+  UserRound
+} from 'lucide-react';
 import type { AppTranslations } from '../i18n';
-import type { AssistLevel, RangeResult, TerrainLevel } from '../types';
+import type { AssistLevel, CalculatorSettings, RangeResult, TerrainLevel } from '../types';
 import { ResultCard } from './ResultCard';
 import { SliderCard } from './SliderCard';
 
@@ -12,6 +20,7 @@ import { SliderCard } from './SliderCard';
  */
 interface RangeCalculatorProps {
   result: RangeResult;
+  settings: CalculatorSettings;
   terrain: TerrainLevel;
   assist: AssistLevel;
   hasCustomData: boolean;
@@ -30,6 +39,7 @@ interface RangeCalculatorProps {
  */
 export function RangeCalculator({
   result,
+  settings,
   terrain,
   assist,
   hasCustomData,
@@ -38,22 +48,66 @@ export function RangeCalculator({
   onAssistChange,
   onOpenSettings
 }: RangeCalculatorProps) {
+  const selectedTerrain = t.terrainOptions.find((option) => option.value === terrain);
+  const selectedAssist = t.assistOptions.find((option) => option.value === assist);
+
   return (
-    <main className="screen-stack">
-      {/* Header contains navigation to the settings screen and the app title. */}
-      <header className="app-header">
-        <button className="settings-button" onClick={onOpenSettings} type="button">
+    <main className="tab-screen">
+      <header className="mobile-screen-header">
+        <h1>{t.rangeTitle}</h1>
+        <button
+          className="icon-button"
+          onClick={onOpenSettings}
+          type="button"
+          aria-label={t.settingsButton}
+        >
           <SettingsIcon className="button-icon" aria-hidden="true" strokeWidth={2.4} />
-          {t.settingsButton}
         </button>
-        <div className="app-title">
-          <h1>{t.appTitle}</h1>
-          <p>{t.appSubtitle}</p>
-        </div>
       </header>
 
+      {/* ResultCard only displays values; it does not know the formula. */}
+      <ResultCard result={result} t={t} />
+
+      <section className="card data-list" aria-label={t.rangeDetailsAriaLabel}>
+        <div className="data-row">
+          <span className="data-row-label">
+            <BatteryFull className="row-icon" aria-hidden="true" strokeWidth={2.25} />
+            {t.batteryCapacityLabel}
+          </span>
+          <strong>{settings.batteryCapacity} Wh</strong>
+        </div>
+        <div className="data-row">
+          <span className="data-row-label">
+            <BatteryCharging className="row-icon" aria-hidden="true" strokeWidth={2.25} />
+            {t.assistLabel}
+          </span>
+          <strong>{selectedAssist?.label ?? assist}</strong>
+        </div>
+        <div className="data-row">
+          <span className="data-row-label">
+            <Mountain className="row-icon" aria-hidden="true" strokeWidth={2.25} />
+            {t.terrainLabel}
+          </span>
+          <strong>{selectedTerrain?.label ?? terrain}</strong>
+        </div>
+        <div className="data-row">
+          <span className="data-row-label">
+            <UserRound className="row-icon" aria-hidden="true" strokeWidth={2.25} />
+            {t.riderWeightLabel}
+          </span>
+          <strong>{settings.riderWeight} kg</strong>
+        </div>
+        <div className="data-row">
+          <span className="data-row-label">
+            <Bike className="row-icon" aria-hidden="true" strokeWidth={2.25} />
+            {t.bikeWeightLabel}
+          </span>
+          <strong>{settings.bikeWeight} kg</strong>
+        </div>
+      </section>
+
       {/* Both sliders update App state immediately, which recalculates the result. */}
-      <div className="control-grid" aria-label={t.controlsAriaLabel}>
+      <div className="control-grid quick-controls" aria-label={t.controlsAriaLabel}>
         <SliderCard
           icon={Mountain}
           onChange={onTerrainChange}
@@ -69,9 +123,6 @@ export function RangeCalculator({
           value={assist}
         />
       </div>
-
-      {/* ResultCard only displays values; it does not know the formula. */}
-      <ResultCard result={result} t={t} />
 
       {/* The notice changes depending on whether the user saved personal data. */}
       {hasCustomData ? (

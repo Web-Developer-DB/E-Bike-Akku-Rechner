@@ -63,6 +63,29 @@ describe('storage', () => {
     expect(loadSettings()).toEqual(settings);
   });
 
+  /** Older app versions saved fewer fields; those values should be migrated. */
+  it('migriert alte gespeicherte Einstellungen', () => {
+    localStorage.setItem(
+      'ebike-settings',
+      JSON.stringify({
+        batteryCapacity: 750,
+        riderWeight: 92,
+        bikeWeight: 28,
+        terrain: 4,
+        assist: 2
+      })
+    );
+
+    expect(loadSettings()).toEqual({
+      ...DEFAULT_SETTINGS,
+      batteryCapacity: 750,
+      riderWeight: 92,
+      bikeWeight: 28,
+      terrain: 4,
+      assist: 2
+    });
+  });
+
   /** The UI allows small batteries down to 200 Wh, including 280 Wh. */
   it('akzeptiert Akkukapazitaeten ab 200 Wh', () => {
     const settings = {
