@@ -33,11 +33,13 @@ describe('calculateTirePressure', () => {
   it('senkt den empfohlenen Druck bei breiteren Reifen', () => {
     const narrowPressure = calculateTirePressure({
       ...DEFAULT_SETTINGS,
+      tireSizeId: '40-406',
       tireWidthMm: 40
     });
     const widePressure = calculateTirePressure({
       ...DEFAULT_SETTINGS,
-      tireWidthMm: 65
+      tireSizeId: '60-406',
+      tireWidthMm: 60
     });
 
     expect(widePressure.frontBar).toBeLessThan(narrowPressure.frontBar);
@@ -47,6 +49,7 @@ describe('calculateTirePressure', () => {
   it('begrenzt die Empfehlung auf den maximalen Reifendruck', () => {
     const pressure = calculateTirePressure({
       ...DEFAULT_SETTINGS,
+      tireSizeId: '50-406',
       riderWeight: 140,
       bikeWeight: 40,
       maxTirePressureBar: 3.2

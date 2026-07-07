@@ -1,4 +1,10 @@
 import type { CalculatorSettings } from '../types';
+import {
+  getClosestPressureGuide,
+  getClosestTireSize,
+  getLoadPressureAdjustment,
+  getTireSizeById
+} from '../data/tireSizes';
 
 /** Conversion factor used by tire sidewalls and pumps. */
 export const PSI_PER_BAR = 14.5038;
@@ -34,20 +40,22 @@ export function psiToBar(value: number): number {
 }
 
 /**
- * Calculates an everyday e-bike tire-pressure recommendation.
+ * Calculates an everyday e-bike tire-pressure recommendation from lookup tables.
  *
- * The model intentionally stays conservative: more total weight raises pressure,
- * wider tires lower it, and the rear tire receives a little more pressure
- * because it carries more load on most city and trekking e-bikes.
+ * Tire size picks the reference width, width picks a pressure guide, and total
+ * system weight picks a discrete load class. Manufacturer limits still win.
  */
 export function calculateTirePressure(
   settings: CalculatorSettings
 ): TirePressureResult {
   const totalWeight = settings.riderWeight + settings.bikeWeight;
-  const weightOffset = (totalWeight - 105) * 0.018;
-  const widthOffset = (50 - settings.tireWidthMm) * 0.035;
-  const frontTarget = 2.7 + weightOffset + widthOffset;
-  const rearTarget = frontTarget + 0.3 + Math.max(weightOffset, 0) * 0.2;
+  const tireSize =
+    getTireSizeById(settings.tireSizeId) ??
+    getClosestTireSize(settings.wheelSizeInch, settings.tireWidthMm);
+  const pressureGuide = getClosestPressureGuide(tireSize.widthMm);
+  const loadAdjustment = getLoadPressureAdjustment(totalWeight);
+  const frontTarget = pressureGuide.baseFrontBar + loadAdjustment.frontDeltaBar;
+  const rearTarget = pressureGuide.baseRearBar + loadAdjustment.rearDeltaBar;
   const maxFrontPressure = Math.max(1.2, settings.maxTirePressureBar - 0.2);
   const frontBar = roundPressure(clamp(frontTarget, 1.2, maxFrontPressure));
   const rearBar = roundPressure(clamp(rearTarget, frontBar, settings.maxTirePressureBar));

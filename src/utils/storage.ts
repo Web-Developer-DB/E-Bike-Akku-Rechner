@@ -6,6 +6,10 @@ import {
   type TireWidthUnit,
   type TerrainLevel
 } from '../types';
+import {
+  getClosestTireSize,
+  getTireSizeById
+} from '../data/tireSizes';
 
 /**
  * Local persistence module.
@@ -83,6 +87,8 @@ function isCalculatorSettings(value: unknown): value is CalculatorSettings {
     isTerrainLevel(value.terrain) &&
     isAssistLevel(value.assist) &&
     isNumberInRange(value.wheelSizeInch, 12, 29) &&
+    typeof value.tireSizeId === 'string' &&
+    getTireSizeById(value.tireSizeId) !== undefined &&
     isNumberInRange(value.tireWidthMm, 25, 120) &&
     isNumberInRange(value.tireWidthInch, 1, 5) &&
     isTireWidthUnit(value.tireWidthUnit) &&
@@ -104,9 +110,27 @@ function normalizeCalculatorSettings(value: unknown): CalculatorSettings | null 
     return null;
   }
 
+  const wheelSizeInch =
+    typeof value.wheelSizeInch === 'number' && Number.isFinite(value.wheelSizeInch)
+      ? value.wheelSizeInch
+      : DEFAULT_SETTINGS.wheelSizeInch;
+  const tireWidthMm =
+    typeof value.tireWidthMm === 'number' && Number.isFinite(value.tireWidthMm)
+      ? value.tireWidthMm
+      : DEFAULT_SETTINGS.tireWidthMm;
+  const existingTireSizeId =
+    typeof value.tireSizeId === 'string' ? value.tireSizeId : '';
+  const tireSize =
+    getTireSizeById(existingTireSizeId) ??
+    getClosestTireSize(wheelSizeInch, tireWidthMm);
   const mergedSettings = {
     ...DEFAULT_SETTINGS,
-    ...value
+    ...value,
+    wheelSizeInch: tireSize.wheelSizeInch,
+    tireSizeId: tireSize.id,
+    tireWidthMm: tireSize.widthMm,
+    tireWidthInch: Math.round((tireSize.widthMm / 25.4) * 100) / 100,
+    tireWidthUnit: 'mm'
   };
 
   return isCalculatorSettings(mergedSettings) ? mergedSettings : null;

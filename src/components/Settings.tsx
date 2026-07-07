@@ -15,10 +15,16 @@ import type {
   AssistLevel,
   CalculatorSettings,
   PressureUnit,
-  TerrainLevel,
-  TireWidthUnit
+  TerrainLevel
 } from '../types';
 import { barToPsi, psiToBar } from '../utils/calculateTirePressure';
+import {
+  formatTireSizeLabel,
+  getClosestTireSize,
+  getTireSizeById,
+  getTireSizesByWheel,
+  getWheelSizeOptions
+} from '../data/tireSizes';
 
 interface SettingsProps {
   settings: CalculatorSettings;
@@ -53,10 +59,6 @@ function toAssistLevel(value: string, fallback: AssistLevel): AssistLevel {
     : fallback;
 }
 
-function toTireWidthUnit(value: string): TireWidthUnit {
-  return value === 'inch' ? 'inch' : 'mm';
-}
-
 function toPressureUnit(value: string): PressureUnit {
   return value === 'psi' ? 'psi' : 'bar';
 }
@@ -79,9 +81,7 @@ export function Settings({ settings, t, onBack, onSave }: SettingsProps) {
     terrain: String(settings.terrain),
     assist: String(settings.assist),
     wheelSizeInch: String(settings.wheelSizeInch),
-    tireWidthMm: String(settings.tireWidthMm),
-    tireWidthInch: String(settings.tireWidthInch),
-    tireWidthUnit: settings.tireWidthUnit,
+    tireSizeId: settings.tireSizeId,
     maxTirePressure:
       settings.pressureUnit === 'psi'
         ? String(barToPsi(settings.maxTirePressureBar))
@@ -89,8 +89,14 @@ export function Settings({ settings, t, onBack, onSave }: SettingsProps) {
     pressureUnit: settings.pressureUnit
   }));
 
-  const activeTireWidthUnit = toTireWidthUnit(formValues.tireWidthUnit);
   const activePressureUnit = toPressureUnit(formValues.pressureUnit);
+  const wheelSizeOptions = getWheelSizeOptions();
+  const selectedWheelSize = toNumber(formValues.wheelSizeInch, settings.wheelSizeInch);
+  const tireSizeOptions = getTireSizesByWheel(selectedWheelSize);
+  const selectedTireSize =
+    getTireSizeById(formValues.tireSizeId) ??
+    tireSizeOptions[0] ??
+    getClosestTireSize(settings.wheelSizeInch, settings.tireWidthMm);
 
   function updateValue(key: keyof typeof formValues, value: string): void {
     setFormValues((currentValues) => ({
@@ -122,27 +128,27 @@ export function Settings({ settings, t, onBack, onSave }: SettingsProps) {
     });
   }
 
-  function updateTireWidthUnit(nextUnit: TireWidthUnit): void {
-    updateValue('tireWidthUnit', nextUnit);
+  function updateWheelSize(nextWheelSize: string): void {
+    const wheelSizeInch = toNumber(nextWheelSize, settings.wheelSizeInch);
+    const nextTireSize = getClosestTireSize(
+      wheelSizeInch,
+      selectedTireSize.widthMm
+    );
+
+    setFormValues((currentValues) => ({
+      ...currentValues,
+      wheelSizeInch: nextWheelSize,
+      tireSizeId: nextTireSize.id
+    }));
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
 
-    const tireWidthUnit = toTireWidthUnit(formValues.tireWidthUnit);
     const pressureUnit = toPressureUnit(formValues.pressureUnit);
-    const activeWidthValue =
-      tireWidthUnit === 'mm'
-        ? toNumber(formValues.tireWidthMm, settings.tireWidthMm)
-        : toNumber(formValues.tireWidthInch, settings.tireWidthInch);
-    const tireWidthMm =
-      tireWidthUnit === 'mm'
-        ? Math.round(clamp(activeWidthValue, 25, 120))
-        : Math.round(clamp(activeWidthValue, 1, 5) * 25.4);
-    const tireWidthInch =
-      tireWidthUnit === 'inch'
-        ? roundTo(clamp(activeWidthValue, 1, 5), 2)
-        : roundTo(clamp(activeWidthValue, 25, 120) / 25.4, 2);
+    const tireSize =
+      getTireSizeById(formValues.tireSizeId) ??
+      getClosestTireSize(settings.wheelSizeInch, settings.tireWidthMm);
     const rawMaxPressure = toNumber(
       formValues.maxTirePressure,
       pressureUnit === 'psi' ? barToPsi(settings.maxTirePressureBar) : settings.maxTirePressureBar
@@ -174,14 +180,11 @@ export function Settings({ settings, t, onBack, onSave }: SettingsProps) {
       ),
       terrain: toTerrainLevel(formValues.terrain, settings.terrain),
       assist: toAssistLevel(formValues.assist, settings.assist),
-      wheelSizeInch: clamp(
-        toNumber(formValues.wheelSizeInch, settings.wheelSizeInch),
-        12,
-        29
-      ),
-      tireWidthMm,
-      tireWidthInch,
-      tireWidthUnit,
+      wheelSizeInch: tireSize.wheelSizeInch,
+      tireSizeId: tireSize.id,
+      tireWidthMm: tireSize.widthMm,
+      tireWidthInch: roundTo(tireSize.widthMm / 25.4, 2),
+      tireWidthUnit: 'mm',
       maxTirePressureBar: roundTo(maxTirePressureBar, 1),
       pressureUnit
     });
@@ -211,10 +214,10 @@ export function Settings({ settings, t, onBack, onSave }: SettingsProps) {
             <div className="input-row">
               <select
                 id="wheelSizeInch"
-                onChange={(event) => updateValue('wheelSizeInch', event.target.value)}
+                onChange={(event) => updateWheelSize(event.target.value)}
                 value={formValues.wheelSizeInch}
               >
-                {[16, 18, 20, 24, 26, 27.5, 28, 29].map((size) => (
+                {wheelSizeOptions.map((size) => (
                   <option key={size} value={size}>
                     {size} {t.inchLabel}
                   </option>
@@ -224,52 +227,28 @@ export function Settings({ settings, t, onBack, onSave }: SettingsProps) {
           </div>
 
           <div className="card settings-field">
-            <label htmlFor="tireWidthMm">
+            <label htmlFor="tireSizeId">
               <span className="icon-badge" aria-hidden="true">
                 <Ruler className="ui-icon" strokeWidth={2.35} />
               </span>
               {t.tireWidthLabel}
             </label>
-            <div className="segmented-control" aria-label={t.tireWidthLabel}>
-              <button
-                className={activeTireWidthUnit === 'mm' ? 'is-active' : undefined}
-                onClick={() => updateTireWidthUnit('mm')}
-                type="button"
-              >
-                {t.millimeterLabel}
-              </button>
-              <button
-                className={activeTireWidthUnit === 'inch' ? 'is-active' : undefined}
-                onClick={() => updateTireWidthUnit('inch')}
-                type="button"
-              >
-                {t.inchLabel}
-              </button>
-            </div>
             <div className="input-row">
-              <input
+              <select
                 aria-label={t.tireWidthLabel}
-                id="tireWidthMm"
-                inputMode="decimal"
-                max={activeTireWidthUnit === 'mm' ? 120 : 5}
-                min={activeTireWidthUnit === 'mm' ? 25 : 1}
-                onChange={(event) =>
-                  updateValue(
-                    activeTireWidthUnit === 'mm' ? 'tireWidthMm' : 'tireWidthInch',
-                    event.target.value
-                  )
-                }
-                type="number"
-                value={
-                  activeTireWidthUnit === 'mm'
-                    ? formValues.tireWidthMm
-                    : formValues.tireWidthInch
-                }
-              />
-              <span>{activeTireWidthUnit === 'mm' ? 'mm' : t.inchLabel}</span>
+                id="tireSizeId"
+                onChange={(event) => updateValue('tireSizeId', event.target.value)}
+                value={selectedTireSize.id}
+              >
+                {tireSizeOptions.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {formatTireSizeLabel(option)}
+                  </option>
+                ))}
+              </select>
             </div>
             <p className="field-help">
-              {activeTireWidthUnit === 'mm' ? t.typicalWidthMm : t.typicalWidthInch}
+              ETRTO {selectedTireSize.id} · {selectedTireSize.widthMm} mm
             </p>
           </div>
 
@@ -302,7 +281,8 @@ export function Settings({ settings, t, onBack, onSave }: SettingsProps) {
                 id="maxTirePressure"
                 inputMode="decimal"
                 onChange={(event) => updateValue('maxTirePressure', event.target.value)}
-                type="number"
+                pattern="[0-9]+([,.][0-9]+)?"
+                type="text"
                 value={formValues.maxTirePressure}
               />
               <span>{activePressureUnit === 'bar' ? t.barLabel : t.psiLabel}</span>

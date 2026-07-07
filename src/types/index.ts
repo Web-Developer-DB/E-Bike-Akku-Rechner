@@ -32,6 +32,7 @@ export interface CalculatorSettings {
   terrain: TerrainLevel;
   assist: AssistLevel;
   wheelSizeInch: number;
+  tireSizeId: string;
   tireWidthMm: number;
   tireWidthInch: number;
   tireWidthUnit: TireWidthUnit;
@@ -76,8 +77,9 @@ export const DEFAULT_SETTINGS: CalculatorSettings = {
   terrain: 2,
   assist: 3,
   wheelSizeInch: 20,
+  tireSizeId: '50-406',
   tireWidthMm: 50,
-  tireWidthInch: 2.15,
+  tireWidthInch: 1.97,
   tireWidthUnit: 'mm',
   maxTirePressureBar: 4.5,
   pressureUnit: 'bar',

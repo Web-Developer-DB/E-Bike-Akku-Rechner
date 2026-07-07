@@ -167,6 +167,28 @@ describe('App', () => {
     expect(screen.getByText('Berechnet mit Ihren gespeicherten Daten.')).toBeInTheDocument();
   });
 
+  /** Tire size is selected from standardized ETRTO options instead of free text. */
+  it('speichert eine Standard-Reifengroesse aus dem Menue', async () => {
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Verstanden' }));
+    await user.click(screen.getByRole('button', { name: /Einstellungen/i }));
+
+    const tireSizeSelect = screen.getByLabelText('Reifenbreite');
+    await user.selectOptions(tireSizeSelect, '54-406');
+    await user.click(screen.getByRole('button', { name: /Speichern/i }));
+
+    expect(JSON.parse(localStorage.getItem('ebike-settings') ?? '{}')).toEqual(
+      expect.objectContaining({
+        tireSizeId: '54-406',
+        tireWidthInch: 2.13,
+        tireWidthMm: 54
+      })
+    );
+  });
+
   /** Ensures slider changes immediately update the calculated result. */
   it('aktualisiert die Reichweite live', async () => {
     const user = userEvent.setup();
