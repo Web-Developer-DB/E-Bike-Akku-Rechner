@@ -34,7 +34,7 @@ The app combines bike, rider, battery, terrain, assistance, and tire data into a
 - Sample-data notice until the user saves personal data
 - Offline-capable PWA setup with manifest and service worker
 - Optional mobile install prompt when supported by the browser
-- German UI for German browser locales, English fallback for all other locales
+- Automatic UI language based on the device/browser language
 
 ### Intended Users
 
@@ -64,7 +64,7 @@ It is not intended to replace manufacturer specifications, workshop advice, or s
 4. Save the settings.
 5. Use the bottom navigation to switch between Range, Tire Pressure, Battery, and More.
 
-The Range tab can still be adjusted quickly with terrain and assistance sliders. Changes there update the range immediately.
+On wider screens, the Range tab can also show quick terrain and assistance sliders. On compact phone screens, those controls are kept out of the primary view so the main range card fits without scrolling.
 
 ### Tire Pressure Notes
 
@@ -385,8 +385,11 @@ src/i18n.ts
 
 Rules:
 
+- The app follows the browser/device language automatically.
 - Browser locales starting with `de` use German text.
-- All other browser locales use English text.
+- English browser locales use English text.
+- Unsupported languages fall back to English.
+- The app also listens for browser `languagechange` events while running.
 - The app updates `document.documentElement.lang`.
 - The app switches between German and English PWA manifests.
 

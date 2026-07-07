@@ -110,6 +110,20 @@ describe('App', () => {
     expect(document.documentElement.lang).toBe('en');
   });
 
+  /** Browser language changes should update the UI while the app is running. */
+  it('updates the UI when the device language changes', async () => {
+    render(<App />);
+
+    expect(screen.getByRole('heading', { name: 'Reichweite' })).toBeInTheDocument();
+
+    setNavigatorLanguage('en-US');
+    fireEvent(window, new Event('languagechange'));
+
+    expect(await screen.findByRole('heading', { name: 'Range' })).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Sample data' })).toBeInTheDocument();
+    expect(document.documentElement.lang).toBe('en');
+  });
+
   /** Protects the mobile app order: result first, quick controls after details. */
   it('zeigt Ergebnis und Details vor den Schnellreglern', async () => {
     const user = userEvent.setup();

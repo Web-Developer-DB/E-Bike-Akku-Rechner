@@ -61,7 +61,7 @@ export function TirePressureScreen({
   const unitLabel = settings.pressureUnit === 'bar' ? t.barLabel : t.psiLabel;
 
   return (
-    <main className="tab-screen">
+    <main className="tab-screen pressure-screen">
       <header className="mobile-screen-header">
         <h1>{t.pressureTitle}</h1>
         <button
@@ -129,7 +129,10 @@ export function TirePressureScreen({
         </button>
       </section>
 
-      <section className="screen-section" aria-labelledby="pressure-hints">
+      <section
+        className="screen-section pressure-hints-section"
+        aria-labelledby="pressure-hints"
+      >
         <h2 id="pressure-hints">{t.pressureHintsTitle}</h2>
         <div className="hint-grid">
           <article className="card hint-card">
