@@ -358,16 +358,46 @@ export const TRANSLATIONS: Record<AppLocale, AppTranslations> = {
  * Any locale starting with "de" is treated as German. This covers Germany
  * (de-DE), Austria (de-AT), Switzerland (de-CH), and plain German (de).
  */
-export function getLocaleFromLanguage(language: string | undefined): AppLocale {
+function getSupportedLocaleFromLanguage(
+  language: string | undefined
+): AppLocale | null {
   const normalizedLanguage = language?.trim().toLowerCase();
 
   if (!normalizedLanguage) {
+    return null;
+  }
+
+  if (normalizedLanguage === 'de' || normalizedLanguage.startsWith('de-')) {
+    return 'de';
+  }
+
+  if (normalizedLanguage === 'en' || normalizedLanguage.startsWith('en-')) {
     return 'en';
   }
 
-  return normalizedLanguage === 'de' || normalizedLanguage.startsWith('de-')
-    ? 'de'
-    : 'en';
+  return null;
+}
+
+/** Converts one browser locale string into the app locale, with English fallback. */
+export function getLocaleFromLanguage(language: string | undefined): AppLocale {
+  return getSupportedLocaleFromLanguage(language) ?? 'en';
+}
+
+/**
+ * Chooses the first supported locale from the ordered browser language list.
+ *
+ * Unsupported languages are skipped so a browser list such as
+ * ["fr-FR", "de-DE", "en-US"] still selects German.
+ */
+export function getLocaleFromLanguages(
+  languages: readonly string[] | undefined,
+  fallbackLanguage?: string
+): AppLocale {
+  const supportedLocale = languages
+    ?.map((language) => getSupportedLocaleFromLanguage(language))
+    .find((locale): locale is AppLocale => locale !== null);
+
+  return supportedLocale ?? getLocaleFromLanguage(fallbackLanguage);
 }
 
 /**
@@ -381,7 +411,5 @@ export function getPreferredLocale(): AppLocale {
     return 'en';
   }
 
-  const preferredLanguage = navigator.languages?.[0] ?? navigator.language;
-
-  return getLocaleFromLanguage(preferredLanguage);
+  return getLocaleFromLanguages(navigator.languages, navigator.language);
 }

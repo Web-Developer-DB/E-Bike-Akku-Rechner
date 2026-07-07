@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { getLocaleFromLanguage, TRANSLATIONS } from './i18n';
+import {
+  getLocaleFromLanguage,
+  getLocaleFromLanguages,
+  TRANSLATIONS
+} from './i18n';
 
 /**
  * Unit tests for the tiny internationalization layer.
@@ -27,6 +31,12 @@ describe('i18n', () => {
   it('uses English for non-German locales', () => {
     expect(getLocaleFromLanguage('en-US')).toBe('en');
     expect(getLocaleFromLanguage('fr-FR')).toBe('en');
+  });
+
+  /** The full browser language list should be searched for supported locales. */
+  it('uses the first supported locale from the browser language list', () => {
+    expect(getLocaleFromLanguages(['fr-FR', 'de-DE', 'en-US'])).toBe('de');
+    expect(getLocaleFromLanguages(['fr-FR', 'es-ES'], 'en-US')).toBe('en');
   });
 
   /** Empty or missing language data should be safe and default to English. */

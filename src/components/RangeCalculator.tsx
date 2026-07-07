@@ -52,7 +52,7 @@ export function RangeCalculator({
   const selectedAssist = t.assistOptions.find((option) => option.value === assist);
 
   return (
-    <main className="tab-screen">
+    <main className="tab-screen range-screen">
       <header className="mobile-screen-header">
         <h1>{t.rangeTitle}</h1>
         <button

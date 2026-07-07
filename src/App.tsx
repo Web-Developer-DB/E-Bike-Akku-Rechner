@@ -57,8 +57,8 @@ function isStandaloneApp(): boolean {
  * components receive data and callbacks through props.
  */
 function App() {
-  /** Locale is detected once from the browser because no in-app language switch exists. */
-  const [locale] = useState(() => getPreferredLocale());
+  /** Locale follows the browser/device language because no manual switch exists. */
+  const [locale, setLocale] = useState(() => getPreferredLocale());
 
   /** Translation object used by all child components. */
   const t = TRANSLATIONS[locale];
@@ -90,6 +90,19 @@ function App() {
 
   /** Calculates the recommended front/rear tire pressure from saved bike data. */
   const pressure = useMemo(() => calculateTirePressure(settings), [settings]);
+
+  /** Reacts when the browser reports a changed preferred device language. */
+  useEffect(() => {
+    function handleLanguageChange(): void {
+      setLocale(getPreferredLocale());
+    }
+
+    window.addEventListener('languagechange', handleLanguageChange);
+
+    return () => {
+      window.removeEventListener('languagechange', handleLanguageChange);
+    };
+  }, []);
 
   /**
    * Keeps browser metadata in sync with the selected UI language.
