@@ -84,10 +84,10 @@ describe('App', () => {
     render(<App />);
 
     expect(
-      screen.getByRole('heading', { name: 'E-Bike Akku-Rechner' })
+      screen.getByRole('heading', { name: 'Reichweite' })
     ).toBeInTheDocument();
-    expect(screen.getByText('60 km')).toBeInTheDocument();
-    expect(screen.getByText('Realistisch: 51 - 69 km')).toBeInTheDocument();
+    expect(screen.getByText('57 km')).toBeInTheDocument();
+    expect(screen.getByText('Realistisch: 49 - 66 km')).toBeInTheDocument();
   });
 
   /** Non-German browser locales should receive English UI text. */
@@ -98,7 +98,7 @@ describe('App', () => {
     render(<App />);
 
     expect(
-      screen.getByRole('heading', { name: 'E-Bike Battery Calculator' })
+      screen.getByRole('heading', { name: 'Range' })
     ).toBeInTheDocument();
     expect(screen.getByRole('dialog', { name: 'Sample data' })).toBeInTheDocument();
 
@@ -106,12 +106,12 @@ describe('App', () => {
 
     expect(screen.getByRole('slider', { name: 'Terrain' })).toBeInTheDocument();
     expect(screen.getByRole('slider', { name: 'Assistance' })).toBeInTheDocument();
-    expect(screen.getByText('Realistic: 51 - 69 km')).toBeInTheDocument();
+    expect(screen.getByText('Realistic: 49 - 66 km')).toBeInTheDocument();
     expect(document.documentElement.lang).toBe('en');
   });
 
-  /** Protects the mobile-friendly order: controls before the result card. */
-  it('zeigt Einstellungen und Schieberegler vor dem Ergebnis', async () => {
+  /** Protects the mobile app order: result first, quick controls after details. */
+  it('zeigt Ergebnis und Details vor den Schnellreglern', async () => {
     const user = userEvent.setup();
 
     render(<App />);
@@ -122,17 +122,22 @@ describe('App', () => {
     const terrainSlider = screen.getByRole('slider', { name: 'Gelände' });
     const supportSlider = screen.getByRole('slider', { name: 'Unterstützung' });
     const resultCard = screen.getByLabelText('Ergebnis der Reichweitenberechnung');
+    const detailsCard = screen.getByLabelText('Reichweitenfaktoren');
 
     expect(
-      settingsButton.compareDocumentPosition(terrainSlider) &
+      settingsButton.compareDocumentPosition(resultCard) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+    expect(
+      resultCard.compareDocumentPosition(detailsCard) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+    expect(
+      detailsCard.compareDocumentPosition(terrainSlider) &
         Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy();
     expect(
       terrainSlider.compareDocumentPosition(supportSlider) &
-        Node.DOCUMENT_POSITION_FOLLOWING
-    ).toBeTruthy();
-    expect(
-      supportSlider.compareDocumentPosition(resultCard) &
         Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy();
   });
@@ -156,9 +161,9 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: /Speichern/i }));
 
     expect(
-      screen.getByRole('heading', { name: 'E-Bike Akku-Rechner' })
+      screen.getByRole('heading', { name: 'Reichweite' })
     ).toBeInTheDocument();
-    expect(screen.getByText('72 km')).toBeInTheDocument();
+    expect(screen.getByText('69 km')).toBeInTheDocument();
     expect(screen.getByText('Berechnet mit Ihren gespeicherten Daten.')).toBeInTheDocument();
   });
 
@@ -173,7 +178,56 @@ describe('App', () => {
     fireEvent.change(supportSlider, { target: { value: '4' } });
 
     const resultCard = screen.getByLabelText('Ergebnis der Reichweitenberechnung');
-    expect(within(resultCard).getByText('40 km')).toBeInTheDocument();
+    expect(within(resultCard).getByText('38 km')).toBeInTheDocument();
+  });
+
+  /** New bottom navigation exposes the tire-pressure screen. */
+  it('zeigt den Reifendruck-Tab', async () => {
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Verstanden' }));
+    await user.click(screen.getByRole('button', { name: 'Reifendruck' }));
+
+    expect(screen.getByRole('heading', { name: 'Reifendruck' })).toBeInTheDocument();
+    expect(screen.getByText('Empfohlener Druck')).toBeInTheDocument();
+    expect(screen.getByText('Vorne')).toBeInTheDocument();
+    expect(screen.getByText('Hinten')).toBeInTheDocument();
+    expect(screen.getByText('Maximaldruck')).toBeInTheDocument();
+  });
+
+  /** New bottom navigation exposes the battery screen. */
+  it('zeigt den Akku-Tab', async () => {
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Verstanden' }));
+    await user.click(screen.getByRole('button', { name: 'Akku' }));
+
+    expect(screen.getByRole('heading', { name: 'Akku' })).toBeInTheDocument();
+    expect(screen.getByText('Akkustand (voll geladen)')).toBeInTheDocument();
+    expect(screen.getByText('625 Wh')).toBeInTheDocument();
+    expect(screen.getByText('95 %')).toBeInTheDocument();
+  });
+
+  /** The more tab links to app management actions. */
+  it('zeigt den Mehr-Tab und oeffnet die Einstellungen', async () => {
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Verstanden' }));
+    await user.click(screen.getByRole('button', { name: 'Mehr' }));
+
+    expect(screen.getByRole('heading', { name: 'Mehr' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /Fahrraddaten verwalten/i }));
+
+    expect(
+      screen.getByRole('heading', { name: 'Einstellungen' })
+    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Reifen' })).toBeInTheDocument();
   });
 
   /** 0% support should show that the battery is not consumed. */

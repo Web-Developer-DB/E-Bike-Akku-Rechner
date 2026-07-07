@@ -9,16 +9,35 @@
 /** Terrain and assistance sliders both use five fixed levels. */
 export type TerrainLevel = 1 | 2 | 3 | 4 | 5;
 
+/** Main bottom-navigation destinations. */
+export type AppTab = 'range' | 'pressure' | 'battery' | 'more';
+
 /** The assistance level maps to a percentage share supplied by the motor. */
 export type AssistLevel = 1 | 2 | 3 | 4 | 5;
+
+/** Tire width can be entered in the unit printed on the tire sidewall. */
+export type TireWidthUnit = 'mm' | 'inch';
+
+/** Pressure input and display support the two common tire-pressure units. */
+export type PressureUnit = 'bar' | 'psi';
 
 /** All user-controlled values that influence the range calculation. */
 export interface CalculatorSettings {
   batteryCapacity: number;
+  batteryCharge: number;
+  batteryHealth: number;
+  chargeCycles: number;
   riderWeight: number;
   bikeWeight: number;
   terrain: TerrainLevel;
   assist: AssistLevel;
+  wheelSizeInch: number;
+  tireWidthMm: number;
+  tireWidthInch: number;
+  tireWidthUnit: TireWidthUnit;
+  maxTirePressureBar: number;
+  pressureUnit: PressureUnit;
+  lastPressureCheckDays: number;
 }
 
 /** Rounded finite result values shown in the result card. */
@@ -49,8 +68,18 @@ export interface Option<TValue extends number> {
 /** Example values used on first app start before the user saves personal data. */
 export const DEFAULT_SETTINGS: CalculatorSettings = {
   batteryCapacity: 625,
+  batteryCharge: 100,
+  batteryHealth: 95,
+  chargeCycles: 32,
   riderWeight: 80,
   bikeWeight: 25,
   terrain: 2,
-  assist: 3
+  assist: 3,
+  wheelSizeInch: 20,
+  tireWidthMm: 50,
+  tireWidthInch: 2.15,
+  tireWidthUnit: 'mm',
+  maxTirePressureBar: 4.5,
+  pressureUnit: 'bar',
+  lastPressureCheckDays: 5
 };

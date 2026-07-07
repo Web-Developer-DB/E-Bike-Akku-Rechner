@@ -3,20 +3,23 @@ import {
   ArrowLeft,
   BatteryFull,
   Bike,
-  Info,
+  Gauge,
+  HeartPulse,
+  Mountain,
+  Ruler,
   Save,
-  UserRound,
-  type LucideIcon
+  UserRound
 } from 'lucide-react';
 import type { AppTranslations } from '../i18n';
-import type { CalculatorSettings } from '../types';
+import type {
+  AssistLevel,
+  CalculatorSettings,
+  PressureUnit,
+  TerrainLevel,
+  TireWidthUnit
+} from '../types';
+import { barToPsi, psiToBar } from '../utils/calculateTirePressure';
 
-/**
- * Props for the settings screen.
- *
- * Settings receives the current values, lets the user edit them, and returns a
- * complete CalculatorSettings object when the form is submitted.
- */
 interface SettingsProps {
   settings: CalculatorSettings;
   t: AppTranslations;
@@ -24,157 +27,481 @@ interface SettingsProps {
   onSave: (settings: CalculatorSettings) => void;
 }
 
-/** Configuration for one numeric input field on the settings screen. */
-interface FieldConfig {
-  id: keyof Pick<CalculatorSettings, 'batteryCapacity' | 'riderWeight' | 'bikeWeight'>;
-  icon: LucideIcon;
-  label: string;
-  max: number;
-  min: number;
-  unit: string;
-}
-
-/**
- * Builds localized field metadata for the settings form.
- *
- * Adding or changing a numeric field only requires updating this function and
- * the CalculatorSettings type.
- */
-function getFields(t: AppTranslations): FieldConfig[] {
-  return [
-    {
-      id: 'batteryCapacity',
-      icon: BatteryFull,
-      label: t.batteryCapacityLabel,
-      min: 200,
-      max: 1000,
-      unit: 'Wh'
-    },
-    {
-      id: 'riderWeight',
-      icon: UserRound,
-      label: t.riderWeightLabel,
-      min: 40,
-      max: 140,
-      unit: 'kg'
-    },
-    {
-      id: 'bikeWeight',
-      icon: Bike,
-      label: t.bikeWeightLabel,
-      min: 15,
-      max: 40,
-      unit: 'kg'
-    }
-  ];
-}
-
-/** Restricts form values to the allowed UI range before saving. */
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
 
-/**
- * Converts an input string into a number.
- *
- * If the user temporarily enters something invalid, the previous saved value is
- * used as a safe fallback.
- */
 function toNumber(value: string, fallback: number): number {
-  const parsed = Number(value);
+  const parsed = Number(value.replace(',', '.'));
 
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-/**
- * Settings screen.
- *
- * The component keeps form input as strings because number inputs can be empty
- * while the user edits them. Values are converted and clamped only on submit.
- */
-export function Settings({ settings, t, onBack, onSave }: SettingsProps) {
-  /** Localized field metadata is built from the active translation object. */
-  const fields = getFields(t);
+function toTerrainLevel(value: string, fallback: TerrainLevel): TerrainLevel {
+  const parsed = Number(value);
 
-  /** Local form state mirrors the visible input values. */
+  return [1, 2, 3, 4, 5].includes(parsed)
+    ? (parsed as TerrainLevel)
+    : fallback;
+}
+
+function toAssistLevel(value: string, fallback: AssistLevel): AssistLevel {
+  const parsed = Number(value);
+
+  return [1, 2, 3, 4, 5].includes(parsed)
+    ? (parsed as AssistLevel)
+    : fallback;
+}
+
+function toTireWidthUnit(value: string): TireWidthUnit {
+  return value === 'inch' ? 'inch' : 'mm';
+}
+
+function toPressureUnit(value: string): PressureUnit {
+  return value === 'psi' ? 'psi' : 'bar';
+}
+
+function roundTo(value: number, digits: number): number {
+  const factor = 10 ** digits;
+
+  return Math.round(value * factor) / factor;
+}
+
+/** Settings screen for ride, tire, and battery data. */
+export function Settings({ settings, t, onBack, onSave }: SettingsProps) {
   const [formValues, setFormValues] = useState(() => ({
     batteryCapacity: String(settings.batteryCapacity),
+    batteryCharge: String(settings.batteryCharge),
+    batteryHealth: String(settings.batteryHealth),
+    chargeCycles: String(settings.chargeCycles),
     riderWeight: String(settings.riderWeight),
-    bikeWeight: String(settings.bikeWeight)
+    bikeWeight: String(settings.bikeWeight),
+    terrain: String(settings.terrain),
+    assist: String(settings.assist),
+    wheelSizeInch: String(settings.wheelSizeInch),
+    tireWidthMm: String(settings.tireWidthMm),
+    tireWidthInch: String(settings.tireWidthInch),
+    tireWidthUnit: settings.tireWidthUnit,
+    maxTirePressure:
+      settings.pressureUnit === 'psi'
+        ? String(barToPsi(settings.maxTirePressureBar))
+        : String(settings.maxTirePressureBar),
+    pressureUnit: settings.pressureUnit
   }));
 
-  /** Converts string inputs into validated numbers and passes them to App.tsx. */
+  const activeTireWidthUnit = toTireWidthUnit(formValues.tireWidthUnit);
+  const activePressureUnit = toPressureUnit(formValues.pressureUnit);
+
+  function updateValue(key: keyof typeof formValues, value: string): void {
+    setFormValues((currentValues) => ({
+      ...currentValues,
+      [key]: value
+    }));
+  }
+
+  function updatePressureUnit(nextUnit: PressureUnit): void {
+    setFormValues((currentValues) => {
+      const currentUnit = toPressureUnit(currentValues.pressureUnit);
+
+      if (currentUnit === nextUnit) {
+        return currentValues;
+      }
+
+      const currentValue = toNumber(
+        currentValues.maxTirePressure,
+        currentUnit === 'psi' ? barToPsi(settings.maxTirePressureBar) : settings.maxTirePressureBar
+      );
+      const convertedValue =
+        nextUnit === 'psi' ? barToPsi(currentValue) : psiToBar(currentValue);
+
+      return {
+        ...currentValues,
+        pressureUnit: nextUnit,
+        maxTirePressure: String(convertedValue)
+      };
+    });
+  }
+
+  function updateTireWidthUnit(nextUnit: TireWidthUnit): void {
+    updateValue('tireWidthUnit', nextUnit);
+  }
+
   function handleSubmit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
 
-    const nextSettings = fields.reduce<CalculatorSettings>(
-      (currentSettings, field) => {
-        const numberValue = toNumber(formValues[field.id], settings[field.id]);
-
-        return {
-          ...currentSettings,
-          [field.id]: Math.round(clamp(numberValue, field.min, field.max))
-        };
-      },
-      { ...settings }
+    const tireWidthUnit = toTireWidthUnit(formValues.tireWidthUnit);
+    const pressureUnit = toPressureUnit(formValues.pressureUnit);
+    const activeWidthValue =
+      tireWidthUnit === 'mm'
+        ? toNumber(formValues.tireWidthMm, settings.tireWidthMm)
+        : toNumber(formValues.tireWidthInch, settings.tireWidthInch);
+    const tireWidthMm =
+      tireWidthUnit === 'mm'
+        ? Math.round(clamp(activeWidthValue, 25, 120))
+        : Math.round(clamp(activeWidthValue, 1, 5) * 25.4);
+    const tireWidthInch =
+      tireWidthUnit === 'inch'
+        ? roundTo(clamp(activeWidthValue, 1, 5), 2)
+        : roundTo(clamp(activeWidthValue, 25, 120) / 25.4, 2);
+    const rawMaxPressure = toNumber(
+      formValues.maxTirePressure,
+      pressureUnit === 'psi' ? barToPsi(settings.maxTirePressureBar) : settings.maxTirePressureBar
     );
+    const maxTirePressureBar =
+      pressureUnit === 'psi'
+        ? clamp(psiToBar(rawMaxPressure), 1.5, 8)
+        : clamp(rawMaxPressure, 1.5, 8);
 
-    onSave(nextSettings);
+    onSave({
+      ...settings,
+      batteryCapacity: Math.round(
+        clamp(toNumber(formValues.batteryCapacity, settings.batteryCapacity), 200, 1000)
+      ),
+      batteryCharge: Math.round(
+        clamp(toNumber(formValues.batteryCharge, settings.batteryCharge), 0, 100)
+      ),
+      batteryHealth: Math.round(
+        clamp(toNumber(formValues.batteryHealth, settings.batteryHealth), 50, 100)
+      ),
+      chargeCycles: Math.round(
+        clamp(toNumber(formValues.chargeCycles, settings.chargeCycles), 0, 2000)
+      ),
+      riderWeight: Math.round(
+        clamp(toNumber(formValues.riderWeight, settings.riderWeight), 40, 140)
+      ),
+      bikeWeight: Math.round(
+        clamp(toNumber(formValues.bikeWeight, settings.bikeWeight), 15, 40)
+      ),
+      terrain: toTerrainLevel(formValues.terrain, settings.terrain),
+      assist: toAssistLevel(formValues.assist, settings.assist),
+      wheelSizeInch: clamp(
+        toNumber(formValues.wheelSizeInch, settings.wheelSizeInch),
+        12,
+        29
+      ),
+      tireWidthMm,
+      tireWidthInch,
+      tireWidthUnit,
+      maxTirePressureBar: roundTo(maxTirePressureBar, 1),
+      pressureUnit
+    });
   }
 
   return (
-    <main className="screen-stack">
-      {/* Header provides a simple back action and screen title. */}
-      <header className="settings-header">
-        <button className="back-button" onClick={onBack} type="button">
+    <main className="tab-screen">
+      <header className="settings-header compact">
+        <button className="back-button ghost" onClick={onBack} type="button">
           <ArrowLeft className="button-icon" aria-hidden="true" strokeWidth={2.4} />
           {t.backButton}
         </button>
         <h1>{t.settingsTitle}</h1>
       </header>
 
-      {/* Privacy note: all data stays on the current device. */}
-      <section className="card info-card">
-        <span className="icon-badge subtle" aria-hidden="true">
-          <Info className="ui-icon" strokeWidth={2.35} />
-        </span>
-        <p>{t.privacyNotice}</p>
-      </section>
-
       <form className="settings-form" onSubmit={handleSubmit}>
-        {fields.map((field) => {
-          /** Pull the icon component out so JSX can render it with a capital name. */
-          const FieldIcon = field.icon;
+        <section className="settings-section" aria-labelledby="tire-settings-title">
+          <h2 id="tire-settings-title">{t.tireSettingsTitle}</h2>
 
-          return (
-            <div className="card settings-field" key={field.id}>
-              <label htmlFor={field.id}>
+          <div className="card settings-field">
+            <label htmlFor="wheelSizeInch">
+              <span className="icon-badge" aria-hidden="true">
+                <Gauge className="ui-icon" strokeWidth={2.35} />
+              </span>
+              {t.wheelSizeLabel}
+            </label>
+            <div className="input-row">
+              <select
+                id="wheelSizeInch"
+                onChange={(event) => updateValue('wheelSizeInch', event.target.value)}
+                value={formValues.wheelSizeInch}
+              >
+                {[16, 18, 20, 24, 26, 27.5, 28, 29].map((size) => (
+                  <option key={size} value={size}>
+                    {size} {t.inchLabel}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="card settings-field">
+            <label htmlFor="tireWidthMm">
+              <span className="icon-badge" aria-hidden="true">
+                <Ruler className="ui-icon" strokeWidth={2.35} />
+              </span>
+              {t.tireWidthLabel}
+            </label>
+            <div className="segmented-control" aria-label={t.tireWidthLabel}>
+              <button
+                className={activeTireWidthUnit === 'mm' ? 'is-active' : undefined}
+                onClick={() => updateTireWidthUnit('mm')}
+                type="button"
+              >
+                {t.millimeterLabel}
+              </button>
+              <button
+                className={activeTireWidthUnit === 'inch' ? 'is-active' : undefined}
+                onClick={() => updateTireWidthUnit('inch')}
+                type="button"
+              >
+                {t.inchLabel}
+              </button>
+            </div>
+            <div className="input-row">
+              <input
+                aria-label={t.tireWidthLabel}
+                id="tireWidthMm"
+                inputMode="decimal"
+                max={activeTireWidthUnit === 'mm' ? 120 : 5}
+                min={activeTireWidthUnit === 'mm' ? 25 : 1}
+                onChange={(event) =>
+                  updateValue(
+                    activeTireWidthUnit === 'mm' ? 'tireWidthMm' : 'tireWidthInch',
+                    event.target.value
+                  )
+                }
+                type="number"
+                value={
+                  activeTireWidthUnit === 'mm'
+                    ? formValues.tireWidthMm
+                    : formValues.tireWidthInch
+                }
+              />
+              <span>{activeTireWidthUnit === 'mm' ? 'mm' : t.inchLabel}</span>
+            </div>
+            <p className="field-help">
+              {activeTireWidthUnit === 'mm' ? t.typicalWidthMm : t.typicalWidthInch}
+            </p>
+          </div>
+
+          <div className="card settings-field">
+            <label htmlFor="maxTirePressure">
+              <span className="icon-badge" aria-hidden="true">
+                <Bike className="ui-icon" strokeWidth={2.35} />
+              </span>
+              {t.maxPressureLabel}
+            </label>
+            <div className="segmented-control" aria-label={t.pressureUnitLabel}>
+              <button
+                className={activePressureUnit === 'bar' ? 'is-active' : undefined}
+                onClick={() => updatePressureUnit('bar')}
+                type="button"
+              >
+                {t.barLabel}
+              </button>
+              <button
+                className={activePressureUnit === 'psi' ? 'is-active' : undefined}
+                onClick={() => updatePressureUnit('psi')}
+                type="button"
+              >
+                {t.psiLabel}
+              </button>
+            </div>
+            <div className="input-row">
+              <input
+                aria-label={t.maxPressureLabel}
+                id="maxTirePressure"
+                inputMode="decimal"
+                onChange={(event) => updateValue('maxTirePressure', event.target.value)}
+                type="number"
+                value={formValues.maxTirePressure}
+              />
+              <span>{activePressureUnit === 'bar' ? t.barLabel : t.psiLabel}</span>
+            </div>
+            <p className="field-help">
+              {activePressureUnit === 'bar'
+                ? '1 bar = 14,5 PSI'
+                : '1 PSI = 0,0689 bar'}
+            </p>
+          </div>
+        </section>
+
+        <section className="settings-section" aria-labelledby="ride-settings-title">
+          <h2 id="ride-settings-title">{t.rideSettingsTitle}</h2>
+
+          <div className="settings-two-column">
+            <div className="card settings-field">
+              <label htmlFor="batteryCapacity">
                 <span className="icon-badge" aria-hidden="true">
-                  <FieldIcon className="ui-icon" strokeWidth={2.35} />
+                  <BatteryFull className="ui-icon" strokeWidth={2.35} />
                 </span>
-                {field.label}
+                {t.batteryCapacityLabel}
               </label>
               <div className="input-row">
                 <input
-                  aria-label={field.label}
-                  id={field.id}
+                  aria-label={t.batteryCapacityLabel}
+                  id="batteryCapacity"
                   inputMode="numeric"
-                  max={field.max}
-                  min={field.min}
-                  onChange={(event) =>
-                    setFormValues((currentValues) => ({
-                      ...currentValues,
-                      [field.id]: event.target.value
-                    }))
-                  }
+                  max={1000}
+                  min={200}
+                  onChange={(event) => updateValue('batteryCapacity', event.target.value)}
                   type="number"
-                  value={formValues[field.id]}
+                  value={formValues.batteryCapacity}
                 />
-                <span>{field.unit}</span>
+                <span>Wh</span>
               </div>
             </div>
-          );
-        })}
+
+            <div className="card settings-field">
+              <label htmlFor="riderWeight">
+                <span className="icon-badge" aria-hidden="true">
+                  <UserRound className="ui-icon" strokeWidth={2.35} />
+                </span>
+                {t.riderWeightLabel}
+              </label>
+              <div className="input-row">
+                <input
+                  aria-label={t.riderWeightLabel}
+                  id="riderWeight"
+                  inputMode="numeric"
+                  max={140}
+                  min={40}
+                  onChange={(event) => updateValue('riderWeight', event.target.value)}
+                  type="number"
+                  value={formValues.riderWeight}
+                />
+                <span>kg</span>
+              </div>
+            </div>
+
+            <div className="card settings-field">
+              <label htmlFor="bikeWeight">
+                <span className="icon-badge" aria-hidden="true">
+                  <Bike className="ui-icon" strokeWidth={2.35} />
+                </span>
+                {t.bikeWeightLabel}
+              </label>
+              <div className="input-row">
+                <input
+                  aria-label={t.bikeWeightLabel}
+                  id="bikeWeight"
+                  inputMode="numeric"
+                  max={40}
+                  min={15}
+                  onChange={(event) => updateValue('bikeWeight', event.target.value)}
+                  type="number"
+                  value={formValues.bikeWeight}
+                />
+                <span>kg</span>
+              </div>
+            </div>
+
+            <div className="card settings-field">
+              <label htmlFor="terrain">
+                <span className="icon-badge" aria-hidden="true">
+                  <Mountain className="ui-icon" strokeWidth={2.35} />
+                </span>
+                {t.terrainLabel}
+              </label>
+              <div className="input-row">
+                <select
+                  id="terrain"
+                  onChange={(event) => updateValue('terrain', event.target.value)}
+                  value={formValues.terrain}
+                >
+                  {t.terrainOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="card settings-field">
+              <label htmlFor="assist">
+                <span className="icon-badge" aria-hidden="true">
+                  <Gauge className="ui-icon" strokeWidth={2.35} />
+                </span>
+                {t.assistLabel}
+              </label>
+              <div className="input-row">
+                <select
+                  id="assist"
+                  onChange={(event) => updateValue('assist', event.target.value)}
+                  value={formValues.assist}
+                >
+                  {t.assistOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="settings-section" aria-labelledby="battery-settings-title">
+          <h2 id="battery-settings-title">{t.batterySettingsTitle}</h2>
+
+          <div className="settings-two-column">
+            <div className="card settings-field">
+              <label htmlFor="batteryCharge">
+                <span className="icon-badge" aria-hidden="true">
+                  <BatteryFull className="ui-icon" strokeWidth={2.35} />
+                </span>
+                {t.batteryChargeLabel}
+              </label>
+              <div className="input-row">
+                <input
+                  aria-label={t.batteryChargeLabel}
+                  id="batteryCharge"
+                  inputMode="numeric"
+                  max={100}
+                  min={0}
+                  onChange={(event) => updateValue('batteryCharge', event.target.value)}
+                  type="number"
+                  value={formValues.batteryCharge}
+                />
+                <span>%</span>
+              </div>
+            </div>
+
+            <div className="card settings-field">
+              <label htmlFor="batteryHealth">
+                <span className="icon-badge" aria-hidden="true">
+                  <HeartPulse className="ui-icon" strokeWidth={2.35} />
+                </span>
+                {t.batteryHealthLabel}
+              </label>
+              <div className="input-row">
+                <input
+                  aria-label={t.batteryHealthLabel}
+                  id="batteryHealth"
+                  inputMode="numeric"
+                  max={100}
+                  min={50}
+                  onChange={(event) => updateValue('batteryHealth', event.target.value)}
+                  type="number"
+                  value={formValues.batteryHealth}
+                />
+                <span>%</span>
+              </div>
+            </div>
+
+            <div className="card settings-field">
+              <label htmlFor="chargeCycles">
+                <span className="icon-badge" aria-hidden="true">
+                  <Gauge className="ui-icon" strokeWidth={2.35} />
+                </span>
+                {t.chargeCyclesLabel}
+              </label>
+              <div className="input-row">
+                <input
+                  aria-label={t.chargeCyclesLabel}
+                  id="chargeCycles"
+                  inputMode="numeric"
+                  max={2000}
+                  min={0}
+                  onChange={(event) => updateValue('chargeCycles', event.target.value)}
+                  type="number"
+                  value={formValues.chargeCycles}
+                />
+                <span>#</span>
+              </div>
+            </div>
+          </div>
+        </section>
 
         <button className="primary-button save-button" type="submit">
           <Save className="button-icon" aria-hidden="true" strokeWidth={2.4} />

@@ -1,21 +1,21 @@
 import { useEffect, useMemo, useState } from 'react';
 import { RangeCalculator } from './components/RangeCalculator';
+import { BatteryScreen } from './components/BatteryScreen';
+import { BottomNavigation } from './components/BottomNavigation';
 import { InstallPromptModal } from './components/InstallPromptModal';
+import { MoreScreen } from './components/MoreScreen';
 import { Settings } from './components/Settings';
+import { TirePressureScreen } from './components/TirePressureScreen';
 import { WelcomeModal } from './components/WelcomeModal';
 import { getPreferredLocale, TRANSLATIONS } from './i18n';
 import { calculateRange } from './utils/calculateRange';
+import { calculateTirePressure } from './utils/calculateTirePressure';
 import {
   hasCustomSettings,
   loadSettings,
   saveSettings
 } from './utils/storage';
-import type { AssistLevel, CalculatorSettings, TerrainLevel } from './types';
-
-/**
- * The app has only two screens by design: the calculator and settings form.
- */
-type Screen = 'calculator' | 'settings';
+import type { AppTab, AssistLevel, CalculatorSettings, TerrainLevel } from './types';
 
 /** Browser event fired when a PWA install prompt can be shown. */
 interface BeforeInstallPromptEvent extends Event {
@@ -63,8 +63,11 @@ function App() {
   /** Translation object used by all child components. */
   const t = TRANSLATIONS[locale];
 
-  /** Controls which of the two screens is currently displayed. */
-  const [screen, setScreen] = useState<Screen>('calculator');
+  /** Controls which bottom-navigation tab is currently selected. */
+  const [activeTab, setActiveTab] = useState<AppTab>('range');
+
+  /** Shows the settings form while preserving the active tab underneath. */
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   /** Loads saved settings once on startup, then keeps changes in React state. */
   const [settings, setSettings] = useState<CalculatorSettings>(() => loadSettings());
@@ -84,6 +87,9 @@ function App() {
 
   /** Recalculates only when settings change, avoiding unnecessary work. */
   const result = useMemo(() => calculateRange(settings), [settings]);
+
+  /** Calculates the recommended front/rear tire pressure from saved bike data. */
+  const pressure = useMemo(() => calculateTirePressure(settings), [settings]);
 
   /**
    * Keeps browser metadata in sync with the selected UI language.
@@ -150,7 +156,25 @@ function App() {
     setSettings(nextSettings);
     setHasCustomData(hasSavedCustomData);
     setShowSampleDataModal(false);
-    setScreen('calculator');
+    setIsSettingsOpen(false);
+  }
+
+  /** Updates the active tab and closes settings when users tap bottom navigation. */
+  function handleTabChange(tab: AppTab): void {
+    setActiveTab(tab);
+    setIsSettingsOpen(false);
+  }
+
+  /** Lets users mark the current tire pressure as freshly checked. */
+  function handleMarkPressureChecked(): void {
+    const nextSettings = {
+      ...settings,
+      lastPressureCheckDays: 0
+    };
+    const hasSavedCustomData = saveSettings(nextSettings);
+
+    setSettings(nextSettings);
+    setHasCustomData(hasSavedCustomData);
   }
 
   /** Starts the browser-controlled PWA installation prompt. */
@@ -171,27 +195,51 @@ function App() {
     setShowInstallPrompt(false);
   }
 
+  const content = isSettingsOpen ? (
+    <Settings
+      onBack={() => setIsSettingsOpen(false)}
+      onSave={handleSave}
+      settings={settings}
+      t={t}
+    />
+  ) : activeTab === 'pressure' ? (
+    <TirePressureScreen
+      onMarkChecked={handleMarkPressureChecked}
+      pressure={pressure}
+      settings={settings}
+      t={t}
+    />
+  ) : activeTab === 'battery' ? (
+    <BatteryScreen result={result} settings={settings} t={t} />
+  ) : activeTab === 'more' ? (
+    <MoreScreen
+      onOpenSettings={() => setIsSettingsOpen(true)}
+      settings={settings}
+      t={t}
+    />
+  ) : (
+    <RangeCalculator
+      assist={settings.assist}
+      hasCustomData={hasCustomData}
+      onAssistChange={handleAssistChange}
+      onOpenSettings={() => setIsSettingsOpen(true)}
+      onTerrainChange={handleTerrainChange}
+      result={result}
+      settings={settings}
+      t={t}
+      terrain={settings.terrain}
+    />
+  );
+
   return (
     <div className="app-shell">
-      {screen === 'calculator' ? (
-        <RangeCalculator
-          assist={settings.assist}
-          hasCustomData={hasCustomData}
-          onAssistChange={handleAssistChange}
-          onOpenSettings={() => setScreen('settings')}
-          onTerrainChange={handleTerrainChange}
-          result={result}
-          t={t}
-          terrain={settings.terrain}
-        />
-      ) : (
-        <Settings
-          onBack={() => setScreen('calculator')}
-          onSave={handleSave}
-          settings={settings}
-          t={t}
-        />
-      )}
+      {content}
+
+      <BottomNavigation
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        t={t}
+      />
 
       {showSampleDataModal ? (
         <WelcomeModal onClose={closeSampleDataModal} t={t} />

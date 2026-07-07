@@ -23,9 +23,9 @@ describe('calculateRange', () => {
   /** Documents the default example result shown on first app start. */
   it('liefert mit Standardwerten eine plausible Reichweite', () => {
     expect(calculateRange(DEFAULT_SETTINGS)).toEqual({
-      range: 60,
-      minRange: 51,
-      maxRange: 69,
+      range: 57,
+      minRange: 49,
+      maxRange: 66,
       isUnlimited: false
     });
   });
@@ -124,6 +124,7 @@ describe('calculateRange', () => {
   /** The UI shows full kilometers, not decimal numbers. */
   it('rundet alle Werte auf ganze Kilometer', () => {
     const result = calculateRange({
+      ...DEFAULT_SETTINGS,
       batteryCapacity: 500,
       riderWeight: 83,
       bikeWeight: 24,

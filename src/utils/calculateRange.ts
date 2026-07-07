@@ -113,7 +113,11 @@ export function calculateRange(settings: CalculatorSettings): RangeResult {
       calculateFullSupportClimbingConsumption(settings.terrain, totalWeight)) *
     motorShare;
 
-  const range = settings.batteryCapacity / endConsumption;
+  const usableBatteryCapacity =
+    settings.batteryCapacity *
+    (settings.batteryCharge / 100) *
+    (settings.batteryHealth / 100);
+  const range = usableBatteryCapacity / endConsumption;
 
   /** All values are rounded because users need a simple kilometer estimate. */
   return {
