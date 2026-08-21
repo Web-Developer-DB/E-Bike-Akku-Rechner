@@ -1,3 +1,10 @@
+/**
+ * Pure range-estimation formula.
+ *
+ * Keeping constants and equations together gives developers one authoritative
+ * place to review or change the model. The README documents the same formula
+ * in user-facing language, while this file is the executable source of truth.
+ */
 import type { AssistLevel, CalculatorSettings, RangeResult, TerrainLevel } from '../types';
 
 /**

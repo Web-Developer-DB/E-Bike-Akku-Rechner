@@ -1,7 +1,14 @@
+/**
+ * First-run modal explaining the difference between example and personal data.
+ *
+ * It intentionally offers two clear paths: configure personal values now or
+ * continue immediately with the built-in examples.
+ */
 import { ArrowRight, Bike, SlidersHorizontal, Sparkles } from 'lucide-react';
 import type { AppTranslations } from '../i18n';
 
 /** Props for the sample-data notice dialog. */
+/** Actions and localized copy supplied by App.tsx. */
 interface WelcomeModalProps {
   onClose: () => void;
   onOpenSettings: () => void;

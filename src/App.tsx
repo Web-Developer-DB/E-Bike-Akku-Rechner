@@ -1,3 +1,10 @@
+/**
+ * Application coordinator for the e-bike range and tire-pressure PWA.
+ *
+ * App.tsx owns shared state and connects pure calculation utilities with the
+ * presentational screens. Keeping this orchestration here prevents individual
+ * screens from duplicating persistence, locale, or navigation rules.
+ */
 import { useEffect, useMemo, useState } from 'react';
 import { RangeCalculator } from './components/RangeCalculator';
 import { BottomNavigation } from './components/BottomNavigation';

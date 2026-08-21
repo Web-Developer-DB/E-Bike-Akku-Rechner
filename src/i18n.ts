@@ -1,3 +1,10 @@
+/**
+ * Localized copy and browser-locale selection.
+ *
+ * Translation keys are typed so components cannot accidentally request a
+ * label that is missing from one language. Add new user-facing text here,
+ * then provide the same key in both language objects.
+ */
 import type { AssistLevel, Option, TerrainLevel } from './types';
 
 /**
@@ -191,6 +198,7 @@ const de: AppTranslations = {
 };
 
 /** English fallback text for all non-German browser locales. */
+/** English fallback text used for every non-German browser locale. */
 const en: AppTranslations = {
   appTitle: 'E-Bike Battery Calculator',
   appSubtitle: 'Calculate range easily',

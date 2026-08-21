@@ -1,3 +1,9 @@
+/**
+ * Vite entry point.
+ *
+ * This file should stay small: application state belongs in App.tsx, styles in
+ * global.css, and offline behavior in the service worker under public/.
+ */
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';

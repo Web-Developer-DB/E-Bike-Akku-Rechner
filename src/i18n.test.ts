@@ -1,3 +1,7 @@
+/**
+ * Unit tests for locale detection and translation completeness at the public
+ * boundary used by App.tsx.
+ */
 import { describe, expect, it } from 'vitest';
 import {
   getLocaleFromLanguage,

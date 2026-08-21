@@ -1,3 +1,9 @@
+/**
+ * Settings form for the values that influence range and tire pressure.
+ *
+ * The form keeps raw text locally while the user edits. Only on submit are
+ * values parsed, clamped, normalized, and sent back to App.tsx for storage.
+ */
 import { useState, type FormEvent } from 'react';
 import {
   ArrowLeft,
@@ -25,6 +31,7 @@ import {
   getWheelSizeOptions
 } from '../data/tireSizes';
 
+/** Settings data and callbacks provided by the parent component. */
 interface SettingsProps {
   settings: CalculatorSettings;
   t: AppTranslations;
@@ -32,16 +39,19 @@ interface SettingsProps {
   onSave: (settings: CalculatorSettings) => void;
 }
 
+/** Restricts a parsed numeric setting to the range accepted by the app. */
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
 
+/** Parses both German comma decimals and standard dot decimals. */
 function toNumber(value: string, fallback: number): number {
   const parsed = Number(value.replace(',', '.'));
 
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+/** Converts a select value into one of the five valid terrain levels. */
 function toTerrainLevel(value: string, fallback: TerrainLevel): TerrainLevel {
   const parsed = Number(value);
 
@@ -50,6 +60,7 @@ function toTerrainLevel(value: string, fallback: TerrainLevel): TerrainLevel {
     : fallback;
 }
 
+/** Converts a select value into one of the five valid assistance levels. */
 function toAssistLevel(value: string, fallback: AssistLevel): AssistLevel {
   const parsed = Number(value);
 
@@ -58,10 +69,12 @@ function toAssistLevel(value: string, fallback: AssistLevel): AssistLevel {
     : fallback;
 }
 
+/** Accepts only supported pressure units and defaults unknown values to bar. */
 function toPressureUnit(value: string): PressureUnit {
   return value === 'psi' ? 'psi' : 'bar';
 }
 
+/** Rounds persisted measurements to a predictable number of decimal places. */
 function roundTo(value: number, digits: number): number {
   const factor = 10 ** digits;
 
@@ -70,6 +83,10 @@ function roundTo(value: number, digits: number): number {
 
 /** Settings screen for the ride values and tire data the calculator still needs. */
 export function Settings({ settings, t, onBack, onSave }: SettingsProps) {
+  /**
+   * Raw form state mirrors input strings so incomplete edits remain possible.
+   * Calculated settings are produced only after the user presses Save.
+   */
   const [formValues, setFormValues] = useState(() => ({
     batteryCapacity: String(settings.batteryCapacity),
     riderWeight: String(settings.riderWeight),
@@ -94,6 +111,7 @@ export function Settings({ settings, t, onBack, onSave }: SettingsProps) {
     tireSizeOptions[0] ??
     getClosestTireSize(settings.wheelSizeInch, settings.tireWidthMm);
 
+  /** Updates one raw form field without parsing unrelated fields. */
   function updateValue(key: keyof typeof formValues, value: string): void {
     setFormValues((currentValues) => ({
       ...currentValues,
@@ -101,6 +119,7 @@ export function Settings({ settings, t, onBack, onSave }: SettingsProps) {
     }));
   }
 
+  /** Converts the visible maximum pressure when the user switches units. */
   function updatePressureUnit(nextUnit: PressureUnit): void {
     setFormValues((currentValues) => {
       const currentUnit = toPressureUnit(currentValues.pressureUnit);
@@ -124,6 +143,7 @@ export function Settings({ settings, t, onBack, onSave }: SettingsProps) {
     });
   }
 
+  /** Keeps tire-width selection compatible with the newly selected wheel size. */
   function updateWheelSize(nextWheelSize: string): void {
     const wheelSizeInch = toNumber(nextWheelSize, settings.wheelSizeInch);
     const nextTireSize = getClosestTireSize(
@@ -138,6 +158,7 @@ export function Settings({ settings, t, onBack, onSave }: SettingsProps) {
     }));
   }
 
+  /** Validates, clamps, normalizes, and submits all settings at once. */
   function handleSubmit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
 
