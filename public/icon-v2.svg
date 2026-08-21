@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <!-- Modern, high-contrast PWA fallback icon. The generous padding also keeps
+       the bicycle legible when Android applies an adaptive icon mask. -->
+  <title id="title">E-Bike Range</title>
+  <rect width="512" height="512" fill="#101B1A"/>
+  <circle cx="152" cy="348" r="66" fill="none" stroke="#00CFA3" stroke-width="24"/>
+  <circle cx="360" cy="348" r="66" fill="none" stroke="#00CFA3" stroke-width="24"/>
+  <path d="M152 348 226 244h74l-58 104m58-104 60 104M226 244l-24-52h56" fill="none" stroke="#F4FFFC" stroke-width="23" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M289 190h66c20 0 36 16 36 36v13h-43v-8h-59z" fill="#F4FFFC"/>
+  <path d="M234 192h45" fill="none" stroke="#F4FFFC" stroke-width="22" stroke-linecap="round"/>
+  <path d="m287 272-64 91h47l-15 72 74-104h-44z" fill="#00CFA3"/>
+</svg>

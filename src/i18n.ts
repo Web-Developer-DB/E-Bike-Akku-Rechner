@@ -19,19 +19,15 @@ export interface AppTranslations {
   settingsTitle: string;
   backButton: string;
   saveButton: string;
-  understoodButton: string;
   tabRange: string;
   tabPressure: string;
-  tabBattery: string;
-  tabMore: string;
   rangeTitle: string;
   pressureTitle: string;
-  batteryTitle: string;
-  moreTitle: string;
   infoButtonAriaLabel: string;
   terrainLabel: string;
   assistLabel: string;
   controlsAriaLabel: string;
+  cycleButtonHint: string;
   resultAriaLabel: string;
   resultTitle: string;
   realisticLabel: string;
@@ -46,11 +42,7 @@ export interface AppTranslations {
   privacyNotice: string;
   rideSettingsTitle: string;
   tireSettingsTitle: string;
-  batterySettingsTitle: string;
   batteryCapacityLabel: string;
-  batteryChargeLabel: string;
-  batteryHealthLabel: string;
-  chargeCyclesLabel: string;
   riderWeightLabel: string;
   bikeWeightLabel: string;
   wheelSizeLabel: string;
@@ -63,8 +55,6 @@ export interface AppTranslations {
   psiLabel: string;
   typicalWidthMm: string;
   typicalWidthInch: string;
-  rangeDetailsAriaLabel: string;
-  batteryStatsAriaLabel: string;
   recommendedPressureTitle: string;
   frontLabel: string;
   rearLabel: string;
@@ -85,22 +75,13 @@ export interface AppTranslations {
   pressureBenefitComfort: string;
   pressureBenefitPunctures: string;
   pressureBenefitGrip: string;
-  fullyChargedBatteryLabel: string;
-  averageConsumptionLabel: string;
-  manageBikeDataLabel: string;
-  profilesLabel: string;
-  maintenanceLabel: string;
-  unitsLabel: string;
-  appSettingsLabel: string;
-  aboutAppLabel: string;
-  feedbackLabel: string;
-  privacyLabel: string;
-  legalNoticeLabel: string;
-  moreListAriaLabel: string;
   welcomeTitle: string;
+  welcomeEyebrow: string;
   welcomeTextLine1: string;
   welcomeTextLine2: string;
   welcomeTextLine3: string;
+  welcomeSetupButton: string;
+  welcomeContinueButton: string;
   installPromptTitle: string;
   installPromptText: string;
   installPromptAccept: string;
@@ -117,19 +98,15 @@ const de: AppTranslations = {
   settingsTitle: 'Einstellungen',
   backButton: 'Zurück',
   saveButton: 'Speichern',
-  understoodButton: 'Verstanden',
   tabRange: 'Reichweite',
   tabPressure: 'Reifendruck',
-  tabBattery: 'Akku',
-  tabMore: 'Mehr',
   rangeTitle: 'Reichweite',
   pressureTitle: 'Reifendruck',
-  batteryTitle: 'Akku',
-  moreTitle: 'Mehr',
   infoButtonAriaLabel: 'Hinweise anzeigen',
   terrainLabel: 'Gelände',
   assistLabel: 'Unterstützung',
   controlsAriaLabel: 'Fahrt anpassen',
+  cycleButtonHint: 'Antippen zum ändern',
   resultAriaLabel: 'Ergebnis der Reichweitenberechnung',
   resultTitle: 'Geschätzte Reichweite',
   realisticLabel: 'Realistisch',
@@ -146,11 +123,7 @@ const de: AppTranslations = {
   privacyNotice: 'Ihre Angaben werden nur auf diesem Gerät gespeichert.',
   rideSettingsTitle: 'Fahrdaten',
   tireSettingsTitle: 'Reifen',
-  batterySettingsTitle: 'Akku',
   batteryCapacityLabel: 'Akkukapazität',
-  batteryChargeLabel: 'Akkustand',
-  batteryHealthLabel: 'Gesundheit',
-  chargeCyclesLabel: 'Ladezyklen',
   riderWeightLabel: 'Fahrergewicht',
   bikeWeightLabel: 'Fahrradgewicht',
   wheelSizeLabel: 'Reifengröße',
@@ -163,8 +136,6 @@ const de: AppTranslations = {
   psiLabel: 'PSI',
   typicalWidthMm: 'Typische Breite: 40 - 65 mm',
   typicalWidthInch: 'Typische Breite: 1.75 - 2.40 Zoll',
-  rangeDetailsAriaLabel: 'Reichweitenfaktoren',
-  batteryStatsAriaLabel: 'Akkudaten',
   recommendedPressureTitle: 'Empfohlener Druck',
   frontLabel: 'Vorne',
   rearLabel: 'Hinten',
@@ -188,25 +159,16 @@ const de: AppTranslations = {
   pressureBenefitComfort: 'Besserer Fahrkomfort',
   pressureBenefitPunctures: 'Weniger Pannen',
   pressureBenefitGrip: 'Mehr Grip & Sicherheit',
-  fullyChargedBatteryLabel: 'Akkustand (voll geladen)',
-  averageConsumptionLabel: 'Durchschnittsverbrauch',
-  manageBikeDataLabel: 'Fahrraddaten verwalten',
-  profilesLabel: 'Profile',
-  maintenanceLabel: 'Wartung & Pflege',
-  unitsLabel: 'Einheiten',
-  appSettingsLabel: 'Einstellungen',
-  aboutAppLabel: 'Über die App',
-  feedbackLabel: 'Feedback',
-  privacyLabel: 'Datenschutz',
-  legalNoticeLabel: 'Impressum',
-  moreListAriaLabel: 'Weitere Optionen',
   welcomeTitle: 'Beispieldaten',
+  welcomeEyebrow: 'DEIN E-BIKE-PROFIL',
   welcomeTextLine1:
     'Die App rechnet aktuell mit Beispieldaten.',
   welcomeTextLine2:
     'Ihre Reichweite wird genauer, wenn Sie eigene Werte speichern.',
   welcomeTextLine3:
     'Gehen Sie zu Einstellungen, um Akkugröße, Fahrergewicht, Fahrradgewicht und Reifendaten zu ändern.',
+  welcomeSetupButton: 'Eigene Werte einrichten',
+  welcomeContinueButton: 'Mit Beispieldaten starten',
   installPromptTitle: 'App installieren?',
   installPromptText:
     'Möchten Sie den E-Bike Akku-Rechner auf diesem Gerät installieren?',
@@ -236,19 +198,15 @@ const en: AppTranslations = {
   settingsTitle: 'Settings',
   backButton: 'Back',
   saveButton: 'Save',
-  understoodButton: 'Got it',
   tabRange: 'Range',
   tabPressure: 'Tire pressure',
-  tabBattery: 'Battery',
-  tabMore: 'More',
   rangeTitle: 'Range',
   pressureTitle: 'Tire pressure',
-  batteryTitle: 'Battery',
-  moreTitle: 'More',
   infoButtonAriaLabel: 'Show notes',
   terrainLabel: 'Terrain',
   assistLabel: 'Assistance',
   controlsAriaLabel: 'Adjust ride',
+  cycleButtonHint: 'Tap to change',
   resultAriaLabel: 'Range calculation result',
   resultTitle: 'Estimated Range',
   realisticLabel: 'Realistic',
@@ -264,11 +222,7 @@ const en: AppTranslations = {
   privacyNotice: 'Your information is stored only on this device.',
   rideSettingsTitle: 'Ride data',
   tireSettingsTitle: 'Tires',
-  batterySettingsTitle: 'Battery',
   batteryCapacityLabel: 'Battery capacity',
-  batteryChargeLabel: 'Battery charge',
-  batteryHealthLabel: 'Health',
-  chargeCyclesLabel: 'Charge cycles',
   riderWeightLabel: 'Rider weight',
   bikeWeightLabel: 'Bike weight',
   wheelSizeLabel: 'Wheel size',
@@ -281,8 +235,6 @@ const en: AppTranslations = {
   psiLabel: 'PSI',
   typicalWidthMm: 'Typical width: 40 - 65 mm',
   typicalWidthInch: 'Typical width: 1.75 - 2.40 inch',
-  rangeDetailsAriaLabel: 'Range factors',
-  batteryStatsAriaLabel: 'Battery data',
   recommendedPressureTitle: 'Recommended pressure',
   frontLabel: 'Front',
   rearLabel: 'Rear',
@@ -306,25 +258,16 @@ const en: AppTranslations = {
   pressureBenefitComfort: 'Better comfort',
   pressureBenefitPunctures: 'Fewer punctures',
   pressureBenefitGrip: 'More grip & safety',
-  fullyChargedBatteryLabel: 'Battery charge (fully charged)',
-  averageConsumptionLabel: 'Average consumption',
-  manageBikeDataLabel: 'Manage bike data',
-  profilesLabel: 'Profiles',
-  maintenanceLabel: 'Maintenance & care',
-  unitsLabel: 'Units',
-  appSettingsLabel: 'Settings',
-  aboutAppLabel: 'About the app',
-  feedbackLabel: 'Feedback',
-  privacyLabel: 'Privacy',
-  legalNoticeLabel: 'Legal notice',
-  moreListAriaLabel: 'More options',
   welcomeTitle: 'Sample data',
+  welcomeEyebrow: 'YOUR E-BIKE PROFILE',
   welcomeTextLine1:
     'The app is currently calculating with sample data.',
   welcomeTextLine2:
     'Your range estimate becomes more accurate after you save your own values.',
   welcomeTextLine3:
     'Go to settings to change battery size, rider weight, bike weight, and tire data.',
+  welcomeSetupButton: 'Set up my values',
+  welcomeContinueButton: 'Start with sample data',
   installPromptTitle: 'Install app?',
   installPromptText:
     'Do you want to install the E-Bike Battery Calculator on this device?',

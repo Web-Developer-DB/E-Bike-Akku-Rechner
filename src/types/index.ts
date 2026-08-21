@@ -6,11 +6,11 @@
  * or magic numbers.
  */
 
-/** Terrain and assistance sliders both use five fixed levels. */
+/** Terrain and assistance controls both use five fixed levels. */
 export type TerrainLevel = 1 | 2 | 3 | 4 | 5;
 
 /** Main bottom-navigation destinations. */
-export type AppTab = 'range' | 'pressure' | 'battery' | 'more';
+export type AppTab = 'range' | 'pressure';
 
 /** The assistance level maps to a percentage share supplied by the motor. */
 export type AssistLevel = 1 | 2 | 3 | 4 | 5;
@@ -21,9 +21,10 @@ export type TireWidthUnit = 'mm' | 'inch';
 /** Pressure input and display support the two common tire-pressure units. */
 export type PressureUnit = 'bar' | 'psi';
 
-/** All user-controlled values that influence the range calculation. */
+/** All persisted values that influence range, pressure, or migration safety. */
 export interface CalculatorSettings {
   batteryCapacity: number;
+  /** Legacy battery-detail values stay persisted for old installs, but are no longer shown. */
   batteryCharge: number;
   batteryHealth: number;
   chargeCycles: number;
@@ -60,7 +61,7 @@ interface UnlimitedRangeResult {
 /** Rounded result values shown in the result card. */
 export type RangeResult = EstimatedRangeResult | UnlimitedRangeResult;
 
-/** Generic shape for localized slider options. */
+/** Generic shape for localized numeric option lists. */
 export interface Option<TValue extends number> {
   value: TValue;
   label: string;

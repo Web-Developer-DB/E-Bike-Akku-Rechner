@@ -48,12 +48,12 @@ function isNumberInRange(value: unknown, min: number, max: number): value is num
   return typeof value === 'number' && Number.isFinite(value) && value >= min && value <= max;
 }
 
-/** Validates that persisted terrain data still matches a supported slider level. */
+/** Validates that persisted terrain data still matches a supported terrain level. */
 function isTerrainLevel(value: unknown): value is TerrainLevel {
   return [1, 2, 3, 4, 5].includes(value as TerrainLevel);
 }
 
-/** Validates that persisted assistance data still matches a supported slider level. */
+/** Validates that persisted assistance data still matches a supported assistance level. */
 function isAssistLevel(value: unknown): value is AssistLevel {
   return [1, 2, 3, 4, 5].includes(value as AssistLevel);
 }

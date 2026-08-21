@@ -91,7 +91,7 @@ export function TirePressureScreen({
                 <span>{unitLabel}</span>
               </p>
             </div>
-            <img src="/icon.svg" alt="" className="bike-card-visual" />
+            <img src="/icon-v2.svg" alt="" className="bike-card-visual" />
           </article>
 
           <article className="card pressure-card">
@@ -102,7 +102,7 @@ export function TirePressureScreen({
                 <span>{unitLabel}</span>
               </p>
             </div>
-            <img src="/icon.svg" alt="" className="bike-card-visual" />
+            <img src="/icon-v2.svg" alt="" className="bike-card-visual" />
           </article>
         </div>
       </section>

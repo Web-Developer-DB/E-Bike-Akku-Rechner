@@ -6,7 +6,7 @@
  */
 
 /** Bump this name when cached production assets need to be invalidated. */
-const CACHE_NAME = 'e-bike-akku-rechner-v2';
+const CACHE_NAME = 'e-bike-akku-rechner-v3';
 
 /** Files required for the app to open and render offline after first load. */
 const APP_SHELL = [
@@ -14,9 +14,9 @@ const APP_SHELL = [
   '/index.html',
   '/manifest.webmanifest',
   '/manifest.de.webmanifest',
-  '/icon.svg',
-  '/icon-192.png',
-  '/icon-512.png',
+  '/icon-v2.svg',
+  '/icon-192-v2.png',
+  '/icon-512-v2.png',
   '/assets/index.css',
   '/assets/index.js'
 ];

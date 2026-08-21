@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { RangeCalculator } from './components/RangeCalculator';
-import { BatteryScreen } from './components/BatteryScreen';
 import { BottomNavigation } from './components/BottomNavigation';
 import { InstallPromptModal } from './components/InstallPromptModal';
-import { MoreScreen } from './components/MoreScreen';
 import { Settings } from './components/Settings';
 import { TirePressureScreen } from './components/TirePressureScreen';
 import { WelcomeModal } from './components/WelcomeModal';
@@ -147,9 +145,15 @@ function App() {
     };
   }, []);
 
-  /** Handles the "Verstanden" button in the sample-data modal. */
+  /** Starts the app with sample values while keeping the modal out of the way. */
   function closeSampleDataModal(): void {
     setShowSampleDataModal(false);
+  }
+
+  /** Opens settings directly from the welcome dialog so users can personalise results first. */
+  function openSettingsFromWelcome(): void {
+    setShowSampleDataModal(false);
+    setIsSettingsOpen(true);
   }
 
   /** Updates terrain immediately so the result can change live. */
@@ -222,14 +226,6 @@ function App() {
       settings={settings}
       t={t}
     />
-  ) : activeTab === 'battery' ? (
-    <BatteryScreen result={result} settings={settings} t={t} />
-  ) : activeTab === 'more' ? (
-    <MoreScreen
-      onOpenSettings={() => setIsSettingsOpen(true)}
-      settings={settings}
-      t={t}
-    />
   ) : (
     <RangeCalculator
       assist={settings.assist}
@@ -237,6 +233,7 @@ function App() {
       onAssistChange={handleAssistChange}
       onOpenSettings={() => setIsSettingsOpen(true)}
       onTerrainChange={handleTerrainChange}
+      pressure={pressure}
       result={result}
       settings={settings}
       t={t}
@@ -255,7 +252,11 @@ function App() {
       />
 
       {showSampleDataModal ? (
-        <WelcomeModal onClose={closeSampleDataModal} t={t} />
+        <WelcomeModal
+          onClose={closeSampleDataModal}
+          onOpenSettings={openSettingsFromWelcome}
+          t={t}
+        />
       ) : null}
       {showInstallPrompt && !showSampleDataModal ? (
         <InstallPromptModal

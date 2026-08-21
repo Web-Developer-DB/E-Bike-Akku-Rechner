@@ -71,7 +71,7 @@ function calculateFullSupportFlatConsumption(totalWeight: number): number {
  * Calculates the battery energy needed to lift rider and bike uphill at full
  * motor assistance.
  *
- * The terrain slider stands in for unknown GPS data by estimating positive
+ * The terrain level stands in for unknown GPS data by estimating positive
  * elevation gain per kilometer. Descending is not subtracted because normal
  * e-bikes usually do not recover meaningful energy.
  */
@@ -107,16 +107,14 @@ export function calculateRange(settings: CalculatorSettings): RangeResult {
     };
   }
 
-  /** The support slider decides which share of total riding energy the motor pays. */
+  /** The support level decides which share of total riding energy the motor pays. */
   const endConsumption =
     (calculateFullSupportFlatConsumption(totalWeight) +
       calculateFullSupportClimbingConsumption(settings.terrain, totalWeight)) *
     motorShare;
 
-  const usableBatteryCapacity =
-    settings.batteryCapacity *
-    (settings.batteryCharge / 100) *
-    (settings.batteryHealth / 100);
+  /** Only the visible battery capacity input is used; hidden legacy battery data is ignored. */
+  const usableBatteryCapacity = settings.batteryCapacity;
   const range = usableBatteryCapacity / endConsumption;
 
   /** All values are rounded because users need a simple kilometer estimate. */

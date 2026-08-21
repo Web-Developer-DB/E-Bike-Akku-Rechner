@@ -58,7 +58,7 @@ describe('App', () => {
 
     expect(screen.getByRole('dialog', { name: 'Beispieldaten' })).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Verstanden' }));
+    await user.click(screen.getByRole('button', { name: 'Mit Beispieldaten starten' }));
 
     expect(
       screen.queryByRole('dialog', { name: 'Beispieldaten' })
@@ -71,12 +71,24 @@ describe('App', () => {
     const user = userEvent.setup();
     const firstRender = render(<App />);
 
-    await user.click(screen.getByRole('button', { name: 'Verstanden' }));
+    await user.click(screen.getByRole('button', { name: 'Mit Beispieldaten starten' }));
     firstRender.unmount();
 
     render(<App />);
 
     expect(screen.getByRole('dialog', { name: 'Beispieldaten' })).toBeInTheDocument();
+  });
+
+  /** The welcome dialog should offer a useful direct path to personal settings. */
+  it('oeffnet aus dem Begruessungsdialog direkt die Einstellungen', async () => {
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Eigene Werte einrichten' }));
+
+    expect(screen.queryByRole('dialog', { name: 'Beispieldaten' })).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Einstellungen' })).toBeInTheDocument();
   });
 
   /** Verifies the default calculator screen and default range output. */
@@ -86,8 +98,8 @@ describe('App', () => {
     expect(
       screen.getByRole('heading', { name: 'Reichweite' })
     ).toBeInTheDocument();
-    expect(screen.getByText('57 km')).toBeInTheDocument();
-    expect(screen.getByText('Realistisch: 49 - 66 km')).toBeInTheDocument();
+    expect(screen.getByText('60 km')).toBeInTheDocument();
+    expect(screen.getByText('Realistisch: 51 - 69 km')).toBeInTheDocument();
   });
 
   /** Non-German browser locales should receive English UI text. */
@@ -102,11 +114,15 @@ describe('App', () => {
     ).toBeInTheDocument();
     expect(screen.getByRole('dialog', { name: 'Sample data' })).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Got it' }));
+    await user.click(screen.getByRole('button', { name: 'Start with sample data' }));
 
-    expect(screen.getByRole('slider', { name: 'Terrain' })).toBeInTheDocument();
-    expect(screen.getByRole('slider', { name: 'Assistance' })).toBeInTheDocument();
-    expect(screen.getByText('Realistic: 49 - 66 km')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /Terrain: Slightly hilly/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /Assistance: Tour/i })
+    ).toBeInTheDocument();
+    expect(screen.getByText('Realistic: 51 - 69 km')).toBeInTheDocument();
     expect(document.documentElement.lang).toBe('en');
   });
 
@@ -124,34 +140,41 @@ describe('App', () => {
     expect(document.documentElement.lang).toBe('en');
   });
 
-  /** Protects the mobile app order: result first, quick controls after details. */
-  it('zeigt Ergebnis und Details vor den Schnellreglern', async () => {
+  /** Protects the mobile app order: result, cycle buttons, pressure, then notice. */
+  it('zeigt Ergebnis, Klickregler und Reifendruck auf dem Board', async () => {
     const user = userEvent.setup();
 
     render(<App />);
 
-    await user.click(screen.getByRole('button', { name: 'Verstanden' }));
+    await user.click(screen.getByRole('button', { name: 'Mit Beispieldaten starten' }));
 
     const settingsButton = screen.getByRole('button', { name: /Einstellungen/i });
-    const terrainSlider = screen.getByRole('slider', { name: 'Gelände' });
-    const supportSlider = screen.getByRole('slider', { name: 'Unterstützung' });
-    const resultCard = screen.getByLabelText('Ergebnis der Reichweitenberechnung');
-    const detailsCard = screen.getByLabelText('Reichweitenfaktoren');
+    const rangeBoard = screen.getByLabelText('Ergebnis der Reichweitenberechnung');
+    const resultValue = within(rangeBoard).getByText('60 km');
+    const terrainButton = within(rangeBoard).getByRole('button', {
+      name: /Gelände: Leicht bergig/i
+    });
+    const assistButton = within(rangeBoard).getByRole('button', {
+      name: /Unterstützung: Tour/i
+    });
+    const pressureHeading = within(rangeBoard).getByRole('heading', {
+      name: 'Empfohlener Druck'
+    });
 
     expect(
-      settingsButton.compareDocumentPosition(resultCard) &
+      settingsButton.compareDocumentPosition(rangeBoard) &
         Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy();
     expect(
-      resultCard.compareDocumentPosition(detailsCard) &
+      resultValue.compareDocumentPosition(terrainButton) &
         Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy();
     expect(
-      detailsCard.compareDocumentPosition(terrainSlider) &
+      terrainButton.compareDocumentPosition(assistButton) &
         Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy();
     expect(
-      terrainSlider.compareDocumentPosition(supportSlider) &
+      assistButton.compareDocumentPosition(pressureHeading) &
         Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy();
   });
@@ -162,7 +185,7 @@ describe('App', () => {
 
     render(<App />);
 
-    await user.click(screen.getByRole('button', { name: 'Verstanden' }));
+    await user.click(screen.getByRole('button', { name: 'Mit Beispieldaten starten' }));
     await user.click(screen.getByRole('button', { name: /Einstellungen/i }));
 
     expect(
@@ -177,7 +200,7 @@ describe('App', () => {
     expect(
       screen.getByRole('heading', { name: 'Reichweite' })
     ).toBeInTheDocument();
-    expect(screen.getByText('69 km')).toBeInTheDocument();
+    expect(screen.getByText('72 km')).toBeInTheDocument();
     expect(screen.getByText('Berechnet mit Ihren gespeicherten Daten.')).toBeInTheDocument();
   });
 
@@ -187,7 +210,7 @@ describe('App', () => {
 
     render(<App />);
 
-    await user.click(screen.getByRole('button', { name: 'Verstanden' }));
+    await user.click(screen.getByRole('button', { name: 'Mit Beispieldaten starten' }));
     await user.click(screen.getByRole('button', { name: /Einstellungen/i }));
 
     const tireSizeSelect = screen.getByLabelText('Reifenbreite');
@@ -203,18 +226,34 @@ describe('App', () => {
     );
   });
 
-  /** Ensures slider changes immediately update the calculated result. */
+  /** Ensures button changes immediately update the calculated result. */
   it('aktualisiert die Reichweite live', async () => {
     const user = userEvent.setup();
 
     render(<App />);
 
-    await user.click(screen.getByRole('button', { name: 'Verstanden' }));
-    const supportSlider = screen.getByRole('slider', { name: 'Unterstützung' });
-    fireEvent.change(supportSlider, { target: { value: '4' } });
+    await user.click(screen.getByRole('button', { name: 'Mit Beispieldaten starten' }));
+    await user.click(screen.getByRole('button', { name: /Unterstützung: Tour/i }));
 
-    const resultCard = screen.getByLabelText('Ergebnis der Reichweitenberechnung');
-    expect(within(resultCard).getByText('38 km')).toBeInTheDocument();
+    const rangeBoard = screen.getByLabelText('Ergebnis der Reichweitenberechnung');
+    expect(within(rangeBoard).getByText('40 km')).toBeInTheDocument();
+    expect(
+      within(rangeBoard).getByRole('button', { name: /Unterstützung: Sport/i })
+    ).toBeInTheDocument();
+  });
+
+  /** Terrain is also changed through a tappable state button. */
+  it('wechselt das Gelaende per Klickbutton', async () => {
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Mit Beispieldaten starten' }));
+    await user.click(screen.getByRole('button', { name: /Gelände: Leicht bergig/i }));
+
+    expect(
+      screen.getByRole('button', { name: /Gelände: Bergig/i })
+    ).toBeInTheDocument();
   });
 
   /** New bottom navigation exposes the tire-pressure screen. */
@@ -223,7 +262,7 @@ describe('App', () => {
 
     render(<App />);
 
-    await user.click(screen.getByRole('button', { name: 'Verstanden' }));
+    await user.click(screen.getByRole('button', { name: 'Mit Beispieldaten starten' }));
     await user.click(screen.getByRole('button', { name: 'Reifendruck' }));
 
     expect(screen.getByRole('heading', { name: 'Reifendruck' })).toBeInTheDocument();
@@ -233,37 +272,31 @@ describe('App', () => {
     expect(screen.getByText('Maximaldruck')).toBeInTheDocument();
   });
 
-  /** New bottom navigation exposes the battery screen. */
-  it('zeigt den Akku-Tab', async () => {
+  /** The simplified bottom navigation no longer exposes battery data. */
+  it('zeigt keinen Akku-Tab', async () => {
     const user = userEvent.setup();
 
     render(<App />);
 
-    await user.click(screen.getByRole('button', { name: 'Verstanden' }));
-    await user.click(screen.getByRole('button', { name: 'Akku' }));
+    await user.click(screen.getByRole('button', { name: 'Mit Beispieldaten starten' }));
 
-    expect(screen.getByRole('heading', { name: 'Akku' })).toBeInTheDocument();
-    expect(screen.getByText('Akkustand (voll geladen)')).toBeInTheDocument();
-    expect(screen.getByText('625 Wh')).toBeInTheDocument();
-    expect(screen.getByText('95 %')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Akku' })).not.toBeInTheDocument();
   });
 
-  /** The more tab links to app management actions. */
-  it('zeigt den Mehr-Tab und oeffnet die Einstellungen', async () => {
+  /** The focused navigation exposes only the two planned app functions. */
+  it('zeigt nur Reichweite und Reifendruck in der Navigation', async () => {
     const user = userEvent.setup();
 
     render(<App />);
 
-    await user.click(screen.getByRole('button', { name: 'Verstanden' }));
-    await user.click(screen.getByRole('button', { name: 'Mehr' }));
+    await user.click(screen.getByRole('button', { name: 'Mit Beispieldaten starten' }));
 
-    expect(screen.getByRole('heading', { name: 'Mehr' })).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: /Fahrraddaten verwalten/i }));
-
-    expect(
-      screen.getByRole('heading', { name: 'Einstellungen' })
-    ).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Reifen' })).toBeInTheDocument();
+    const navigation = screen.getByRole('navigation', { name: 'App' });
+    expect(within(navigation).getAllByRole('button')).toHaveLength(2);
+    expect(within(navigation).getByRole('button', { name: 'Reichweite' })).toBeInTheDocument();
+    expect(within(navigation).getByRole('button', { name: 'Reifendruck' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Mehr' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Mehr' })).not.toBeInTheDocument();
   });
 
   /** 0% support should show that the battery is not consumed. */
@@ -272,9 +305,11 @@ describe('App', () => {
 
     render(<App />);
 
-    await user.click(screen.getByRole('button', { name: 'Verstanden' }));
-    const supportSlider = screen.getByRole('slider', { name: 'Unterstützung' });
-    fireEvent.change(supportSlider, { target: { value: '1' } });
+    await user.click(screen.getByRole('button', { name: 'Mit Beispieldaten starten' }));
+    const supportButton = screen.getByRole('button', { name: /Unterstützung: Tour/i });
+    await user.click(supportButton);
+    await user.click(supportButton);
+    await user.click(supportButton);
 
     const resultCard = screen.getByLabelText('Ergebnis der Reichweitenberechnung');
     expect(
@@ -299,7 +334,7 @@ describe('App', () => {
     });
 
     fireEvent(window, installEvent);
-    await user.click(screen.getByRole('button', { name: 'Verstanden' }));
+    await user.click(screen.getByRole('button', { name: 'Mit Beispieldaten starten' }));
 
     expect(screen.getByRole('dialog', { name: 'App installieren?' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Ja' })).toBeInTheDocument();
