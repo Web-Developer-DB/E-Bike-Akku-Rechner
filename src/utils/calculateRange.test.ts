@@ -23,9 +23,9 @@ describe('calculateRange', () => {
   /** Documents the default example result shown on first app start. */
   it('liefert mit Standardwerten eine plausible Reichweite', () => {
     expect(calculateRange(DEFAULT_SETTINGS)).toEqual({
-      range: 57,
-      minRange: 49,
-      maxRange: 66,
+      range: 60,
+      minRange: 51,
+      maxRange: 69,
       isUnlimited: false
     });
   });

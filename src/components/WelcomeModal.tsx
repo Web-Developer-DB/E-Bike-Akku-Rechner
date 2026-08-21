@@ -1,9 +1,10 @@
-import { CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Bike, SlidersHorizontal, Sparkles } from 'lucide-react';
 import type { AppTranslations } from '../i18n';
 
 /** Props for the sample-data notice dialog. */
 interface WelcomeModalProps {
   onClose: () => void;
+  onOpenSettings: () => void;
   t: AppTranslations;
 }
 
@@ -13,23 +14,48 @@ interface WelcomeModalProps {
  * The modal explains that default sample data is used until the user saves
  * personal values in settings. App.tsx decides whether it should be visible.
  */
-export function WelcomeModal({ onClose, t }: WelcomeModalProps) {
+export function WelcomeModal({ onClose, onOpenSettings, t }: WelcomeModalProps) {
   return (
     <div className="modal-backdrop" role="presentation">
       <section
         aria-labelledby="welcome-title"
         aria-modal="true"
-        className="welcome-modal"
+        className="welcome-modal welcome-modal--sample"
         role="dialog"
       >
-        <h2 id="welcome-title">{t.welcomeTitle}</h2>
-        <p>{t.welcomeTextLine1}</p>
-        <p>{t.welcomeTextLine2}</p>
-        <p>{t.welcomeTextLine3}</p>
-        <button className="primary-button" onClick={onClose} type="button">
-          <CheckCircle2 className="button-icon" aria-hidden="true" strokeWidth={2.4} />
-          {t.understoodButton}
-        </button>
+        <div className="welcome-modal-content">
+          <div className="welcome-modal-heading">
+            <span className="welcome-modal-icon" aria-hidden="true">
+              <Bike className="welcome-bike-icon" strokeWidth={2.35} />
+            </span>
+            <div>
+              <span className="welcome-eyebrow">
+                <Sparkles aria-hidden="true" strokeWidth={2.4} />
+                {t.welcomeEyebrow}
+              </span>
+              <h2 id="welcome-title">{t.welcomeTitle}</h2>
+            </div>
+          </div>
+
+          <p className="welcome-lead">{t.welcomeTextLine1}</p>
+          <p className="welcome-body">{t.welcomeTextLine2}</p>
+
+          <div className="welcome-guidance">
+            <SlidersHorizontal aria-hidden="true" strokeWidth={2.35} />
+            <p>{t.welcomeTextLine3}</p>
+          </div>
+
+          <div className="welcome-actions">
+            <button className="primary-button" onClick={onOpenSettings} type="button">
+              <SlidersHorizontal className="button-icon" aria-hidden="true" strokeWidth={2.4} />
+              {t.welcomeSetupButton}
+            </button>
+            <button className="welcome-secondary-action" onClick={onClose} type="button">
+              {t.welcomeContinueButton}
+              <ArrowRight className="button-icon" aria-hidden="true" strokeWidth={2.4} />
+            </button>
+          </div>
+        </div>
       </section>
     </div>
   );

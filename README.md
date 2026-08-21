@@ -1,462 +1,367 @@
-# E-Bike Battery Calculator
+<div align="center">
+  <img src="public/icon-512-v2.png" width="112" alt="E-Bike Range app icon" />
+  <h1>E-Bike Akku-Rechner</h1>
+  <p>Mobile-first PWA für Reichweitenschätzung und den passenden Reifendruck.</p>
 
-A mobile-first Progressive Web App for estimating e-bike range, recommended tire pressure, and basic battery status. The app is designed for everyday riders who want quick, understandable guidance without accounts, tracking, maps, GPS, weather APIs, or cloud storage.
+  <img src="https://img.shields.io/badge/React-19-149ECA?logo=react&logoColor=white" alt="React 19" />
+  <img src="https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white" alt="TypeScript 5.9" />
+  <img src="https://img.shields.io/badge/Vite-7-646CFF?logo=vite&logoColor=white" alt="Vite 7" />
+  <img src="https://img.shields.io/badge/PWA-installable-101B1A?logo=pwa&logoColor=white" alt="Installable PWA" />
+  <img src="https://img.shields.io/badge/tests-42%20passing-00A884?logo=vitest&logoColor=white" alt="42 passing tests" />
+</div>
 
-All personal values are stored locally in the browser.
+> **Zwei klare Aufgaben. Eine schnelle mobile Oberfläche.**
+> Die App berechnet eine realistische E-Bike-Reichweite und zeigt den empfohlenen Druck für Vorder- und Hinterreifen. Alle Angaben bleiben lokal auf dem Gerät.
 
-## Part 1: App Overview
+<p align="center">
+  <a href="#quick-start">Quick Start</a> ·
+  <a href="#funktionen">Funktionen</a> ·
+  <a href="#developer-guide">Developer Guide</a> ·
+  <a href="#schnellstart-deutsch">Deutsch</a>
+</p>
 
-### What The App Does
+## Quick Start
 
-The E-Bike Battery Calculator helps riders answer a practical question:
+### Für Nutzer
 
-> How far can I probably ride with my current e-bike setup?
+1. App öffnen oder auf Android im Browser über **Zum Startbildschirm hinzufügen** installieren.
+2. Beispieldaten bestätigen oder über das Zahnrad eigene Fahrrad- und Fahrdaten speichern.
+3. Auf der Reichweiten-Seite **Gelände** und **Unterstützung** antippen, um die Schätzung sofort anzupassen.
+4. Im Tab **Tire pressure** den empfohlenen Druck für Vorder- und Hinterreifen ablesen.
 
-The app combines bike, rider, battery, terrain, assistance, and tire data into a compact mobile interface with four main tabs:
+Die Beispielrechnung startet mit ungefähr **60 km** und einem realistischen Bereich von **51 bis 69 km**. Das Ergebnis ist eine Orientierung und ersetzt keine Messung unter realen Bedingungen.
 
-| Tab | Purpose |
+### Installation als PWA
+
+Die Anwendung benötigt keinen App-Store und kein Benutzerkonto.
+
+| Gerät | Installation |
 | --- | --- |
-| Range | Shows the estimated range and the main factors behind it |
-| Tire Pressure | Shows recommended front and rear tire pressure |
-| Battery | Shows battery charge, capacity, health, cycles, and estimated consumption |
-| More | Provides access to bike data, units, settings, and app-related entries |
+| Android | Chrome-Menü öffnen und **Zum Startbildschirm hinzufügen** auswählen |
+| Desktop | Installationssymbol in der Browser-Adressleiste auswählen, sofern angeboten |
+| Entwicklung | `npm install` und danach `npm run dev` ausführen |
 
-### Main Features
+Die App funktioniert nach dem ersten Laden auch offline, weil Manifest, Icons und Produktions-Assets über den Service Worker zwischengespeichert werden.
 
-- Estimated e-bike range in kilometers
-- Realistic low/high range estimate
-- Live adjustment of terrain and assistance level
-- Battery charge and battery health included in the range calculation
-- Tire pressure recommendation for front and rear tires
-- Standardized tire-size selection using ETRTO-style entries such as `50-406`
-- Bar and PSI display support
-- Local settings saved in `localStorage`
-- Sample-data notice until the user saves personal data
-- Offline-capable PWA setup with manifest and service worker
-- Optional mobile install prompt when supported by the browser
-- Automatic UI language based on the device/browser language
+## Funktionen
 
-### Intended Users
+### Die zwei Hauptbereiche
 
-The app is intended for normal e-bike riders, especially people who want a fast estimate rather than a professional engineering tool. It is useful for:
-
-- city and trekking e-bike riders
-- leisure riders
-- riders planning short and medium-distance trips
-- people who want to understand how battery, weight, terrain, support level, and tire pressure interact
-
-It is not intended to replace manufacturer specifications, workshop advice, or safety-critical tire/rim pressure limits.
-
-### How To Use It
-
-1. Open the app.
-2. Review the sample range estimate.
-3. Open Settings and enter your own bike data:
-   - battery capacity
-   - battery charge
-   - battery health
-   - rider weight
-   - bike weight
-   - terrain and assistance defaults
-   - tire size
-   - maximum tire pressure from the tire sidewall
-   - preferred pressure unit
-4. Save the settings.
-5. Use the bottom navigation to switch between Range, Tire Pressure, Battery, and More.
-
-On wider screens, the Range tab can also show quick terrain and assistance sliders. On compact phone screens, those controls are kept out of the primary view so the main range card fits without scrolling.
-
-### Tire Pressure Notes
-
-The tire-pressure feature uses a table-driven approach instead of accepting arbitrary tire sizes. Users choose from common standardized e-bike and city-bike tire sizes from 16" to 28".
-
-The pressure recommendation is based on:
-
-- selected ETRTO tire size
-- tire width
-- total rider + bike weight
-- maximum pressure entered from the tire sidewall
-
-The app never recommends a pressure above the configured maximum tire pressure. Users should always follow the lower maximum if the rim and tire have different pressure limits.
-
-### Technology Used
-
-The app is built with:
-
-- React
-- TypeScript
-- Vite
-- Vitest
-- React Testing Library
-- lucide-react icons
-- plain CSS
-- Web App Manifest and Service Worker for PWA behavior
-
-No heavy UI framework is used.
-
-## Part 2: Developer Documentation
-
-### Project Structure
-
-```text
-src/
-  App.tsx
-  components/
-    BatteryScreen.tsx
-    BottomNavigation.tsx
-    InstallPromptModal.tsx
-    MoreScreen.tsx
-    RangeCalculator.tsx
-    ResultCard.tsx
-    Settings.tsx
-    SliderCard.tsx
-    TirePressureScreen.tsx
-    WelcomeModal.tsx
-  data/
-    tireSizes.ts
-  styles/
-    global.css
-  types/
-    index.ts
-  utils/
-    calculateRange.ts
-    calculateTirePressure.ts
-    storage.ts
-```
-
-### Important Files
-
-| File | Responsibility |
+| Bereich | Was der Nutzer dort erledigt |
 | --- | --- |
-| `src/App.tsx` | Owns app state, selected tab, settings screen, range result, and tire-pressure result |
-| `src/types/index.ts` | Shared domain types and default settings |
-| `src/i18n.ts` | German and English UI text |
-| `src/utils/calculateRange.ts` | Pure range calculation |
-| `src/utils/calculateTirePressure.ts` | Pure tire-pressure calculation |
-| `src/data/tireSizes.ts` | Tire-size table, pressure guide table, load adjustment table |
-| `src/utils/storage.ts` | localStorage persistence, validation, and migration |
-| `src/styles/global.css` | Complete app styling |
-| `public/manifest.webmanifest` | English PWA manifest |
-| `public/manifest.de.webmanifest` | German PWA manifest |
-| `public/sw.js` | Service worker |
+| **Reichweite** | Reichweite, realistischen Bereich, Gelände und Motorunterstützung sehen und ändern |
+| **Reifendruck** | Vorder-/Hinterreifen, Maximaldruck, Einheiten und praktische Hinweise prüfen |
 
-### Installation
+Die Einstellungen sind über das Zahnrad auf der Reichweiten-Seite erreichbar. Es gibt bewusst keine dritte Sammelseite und keine unnötigen Bereiche wie Profile, Wartung oder Feedback.
 
-Requirements:
+### Reichweite anpassen
 
-- Node.js
+Die beiden großen Schaltflächen sind zyklische Bedienelemente. Jeder Tipp wechselt zur nächsten Option und aktualisiert das Ergebnis direkt:
+
+| Einstellung | Optionen |
+| --- | --- |
+| Gelände | Flach, Leicht bergig, Bergig, Stark bergig, Extrem bergig |
+| Unterstützung | Minimal `0%`, Eco `25%`, Tour `50%`, Sport `75%`, Turbo `100%` |
+
+Bei `0%` Unterstützung zeigt die App eine unbegrenzte Akku-Reichweite an, weil der Motor keinen Akkuverbrauch verursacht.
+
+### Reifendruck
+
+Die Empfehlung wird aus Reifengröße, Reifenbreite, Gesamtgewicht und dem eingestellten Maximaldruck abgeleitet. Die App zeigt bar oder PSI an und überschreitet nie den in den Einstellungen hinterlegten Maximaldruck.
+
+Der Nutzer muss zusätzlich die Angaben auf Reifenflanke, Felge und Hersteller beachten. Der niedrigere Herstellergrenzwert ist immer maßgeblich.
+
+### Sprache
+
+Die Sprache wird automatisch aus der Browser- oder Gerätesprache ermittelt:
+
+- `de`, `de-DE`, `de-AT` und andere `de-*`-Locales verwenden Deutsch.
+- Alle anderen Sprachen verwenden Englisch.
+- Die Sprache kann sich während der Laufzeit über das Browser-Ereignis `languagechange` aktualisieren.
+- Dokumenttitel, `lang`-Attribut und PWA-Manifest werden synchron gehalten.
+
+## Schnellstart (Deutsch)
+
+### Für Nutzer
+
+1. App öffnen oder auf Android über das Browser-Menü zum Startbildschirm hinzufügen.
+2. Beispieldaten bestätigen oder über das Zahnrad eigene Werte eingeben.
+3. Auf **Gelände** und **Unterstützung** tippen, um die Reichweite direkt anzupassen.
+4. Im Tab **Reifendruck** den empfohlenen Druck vorne und hinten ablesen.
+
+Die Standardwerte zeigen ungefähr **60 km** Reichweite und einen realistischen Bereich von **51 bis 69 km**. Die Berechnung ist eine praktische Schätzung und keine GPS- oder Wettervorhersage.
+
+### Datenschutz im Alltag
+
+Es gibt keine Anmeldung, keine Cloud-Synchronisierung und keine externe Datenbank. Einstellungen werden nur im lokalen Browser-Speicher (`localStorage`) des verwendeten Geräts gespeichert.
+
+## Developer Guide
+
+### Voraussetzungen
+
+- Node.js 24 oder kompatible aktuelle Node.js-Version
 - npm
 
-Install dependencies:
+### Lokale Entwicklung
 
 ```bash
 npm install
-```
-
-Start the development server:
-
-```bash
 npm run dev
 ```
 
-The app is normally available at:
+Die Entwicklungsumgebung ist danach normalerweise unter [http://127.0.0.1:5173/](http://127.0.0.1:5173/) erreichbar.
 
-```text
-http://127.0.0.1:5173/
-```
+### Verfügbare Skripte
 
-### Available Scripts
-
-| Script | Purpose |
+| Befehl | Zweck |
 | --- | --- |
-| `npm run dev` | Starts the Vite development server |
-| `npm run build` | Runs TypeScript build checks and creates a production build |
-| `npm run preview` | Serves the production build locally |
-| `npm run test` | Starts Vitest in watch mode |
-| `npm run test:run` | Runs all tests once |
+| `npm run dev` | Startet den Vite-Entwicklungsserver |
+| `npm run build` | Führt TypeScript-Prüfung aus und erstellt den Produktions-Build |
+| `npm run preview` | Serviert den Produktions-Build lokal |
+| `npm run test` | Startet Vitest im Watch-Modus |
+| `npm run test:run` | Führt alle Tests einmal aus |
 
-### Testing
-
-Run all tests:
-
-```bash
-npm run test:run
-```
-
-Current test coverage includes:
-
-- range calculation
-- tire-pressure calculation
-- localStorage loading, saving, validation, and migration
-- locale detection
-- main app flows
-- tab navigation
-- settings editing
-- PWA install prompt behavior
-
-Before opening a pull request or publishing a build, run:
+Vor einer Veröffentlichung:
 
 ```bash
 npm run test:run
 npm run build
 ```
 
-### Range Calculation
+### Architektur auf einen Blick
 
-Range calculation is implemented in:
+```text
+Browser / installierte PWA
+          |
+          v
+        App.tsx                 zentraler Zustand und Navigation
+          |
+          +--> RangeCalculator.tsx       Reichweiten-Board
+          |       +--> CycleControlButton.tsx
+          |       +--> calculateRange.ts
+          |
+          +--> TirePressureScreen.tsx    Druck-Detailansicht
+          |       +--> calculateTirePressure.ts
+          |               +--> data/tireSizes.ts
+          |
+          +--> Settings.tsx              Eingabe und Speichern
+          |       +--> utils/storage.ts
+          |
+          +--> i18n.ts                   Locale-Erkennung und Übersetzungen
+```
+
+### Projektstruktur
+
+```text
+.
+├── index.html
+├── package.json
+├── public/
+│   ├── icon-192-v2.png
+│   ├── icon-512-v2.png
+│   ├── icon-v2.svg
+│   ├── manifest.de.webmanifest
+│   ├── manifest.webmanifest
+│   └── sw.js
+└── src/
+    ├── App.tsx
+    ├── App.test.tsx
+    ├── components/
+    │   ├── BottomNavigation.tsx
+    │   ├── CycleControlButton.tsx
+    │   ├── InstallPromptModal.tsx
+    │   ├── RangeCalculator.tsx
+    │   ├── Settings.tsx
+    │   ├── TirePressureScreen.tsx
+    │   └── WelcomeModal.tsx
+    ├── data/tireSizes.ts
+    ├── i18n.ts
+    ├── styles/global.css
+    ├── types/index.ts
+    └── utils/
+        ├── calculateRange.ts
+        ├── calculateTirePressure.ts
+        └── storage.ts
+```
+
+### Zuständigkeiten der wichtigsten Dateien
+
+| Datei | Verantwortung |
+| --- | --- |
+| `src/App.tsx` | Zentraler React-Zustand, Tab-Wechsel, Einstellungen, Modals und Berechnungsergebnisse |
+| `src/components/RangeCalculator.tsx` | Haupt-Board mit Reichweite, Umschaltflächen und kompakter Druckanzeige |
+| `src/components/TirePressureScreen.tsx` | Detaillierte Reifendruckansicht und „Geprüft“-Aktion |
+| `src/components/Settings.tsx` | Eingabe der Akku-, Fahr- und Reifendaten |
+| `src/components/CycleControlButton.tsx` | Wiederverwendbare, tastaturbedienbare Zyklus-Schaltfläche |
+| `src/utils/calculateRange.ts` | Reine und deterministische Reichweitenformel |
+| `src/utils/calculateTirePressure.ts` | Reine Reifendruckberechnung inklusive bar/PSI-Umrechnung |
+| `src/data/tireSizes.ts` | Reifengrößen, Druckleitfäden und Gewichtsklassen |
+| `src/utils/storage.ts` | `localStorage`, Validierung, Defaults und Umgang mit alten Daten |
+| `src/i18n.ts` | Deutsche und englische Texte sowie automatische Locale-Auswahl |
+| `src/types/index.ts` | Gemeinsame Typen, Optionen und Standardwerte |
+| `src/styles/global.css` | Mobile-first Layout, responsive Größen und Fokuszustände |
+| `public/manifest*.webmanifest` | Installationsname, Sprache, Theme-Farben und PWA-Icons |
+| `public/sw.js` | Offline-App-Shell und Cache-Versionierung |
+
+## Berechnungslogik
+
+### Reichweitenformel (English)
+
+The range formula is stored in:
 
 ```text
 src/utils/calculateRange.ts
 ```
 
-The function is pure and independent of React, CSS, and browser APIs.
-
-Core idea:
+`calculateRange(settings)` is a pure function. It does not import React, access the DOM, or read from storage. This makes the business rule easy to test and safe to change in isolation.
 
 ```text
-range = usable battery capacity / energy consumption per km
+range = batteryCapacity / energyConsumptionPerKm
 ```
 
-Usable battery capacity:
+At full motor support, the consumption is composed of flat-road and climbing energy:
 
 ```text
-batteryCapacity * (batteryCharge / 100) * (batteryHealth / 100)
+energyConsumptionPerKm =
+  (flatConsumption(totalWeight) + climbingConsumption(terrain, totalWeight))
+  * motorShare(assistance)
 ```
 
-Energy consumption per km:
+Important implementation values:
 
-```text
-(flat full-support consumption + climbing full-support consumption) * motor share
-```
-
-Important constants:
-
-| Constant | Meaning |
+| Constant | Current meaning |
 | --- | --- |
-| `FULL_SUPPORT_FLAT_CONSUMPTION_WH_PER_KM` | Flat-road consumption at full motor support |
-| `ELEVATION_GAIN_M_PER_KM` | Estimated climbing meters per terrain level |
-| `ASSISTANCE_MOTOR_SHARE` | Motor share by assistance level |
-| `REFERENCE_WEIGHT_KG` | Neutral reference weight for flat-road consumption |
-| `FLAT_WEIGHT_INFLUENCE` | Weight influence on flat-road consumption |
-| `MOTOR_EFFICIENCY` | Efficiency used for climbing energy |
+| `FULL_SUPPORT_FLAT_CONSUMPTION_WH_PER_KM` | `18 Wh/km` at reference weight on flat ground |
+| `REFERENCE_WEIGHT_KG` | `105 kg` rider plus bike |
+| `FLAT_WEIGHT_INFLUENCE` | `0.3`, mild weight effect on flat consumption |
+| `MOTOR_EFFICIENCY` | `0.85` for climbing energy |
+| `GRAVITY_M_PER_SECOND_SQUARED` | `9.81 m/s²` |
+| `WATT_SECONDS_PER_WATT_HOUR` | `3600` |
 
-Terrain levels:
+Terrain elevation estimates:
 
-| Level | Meaning | Elevation gain |
-| --- | --- | ---: |
-| 1 | Flat | 0 m/km |
-| 2 | Slightly hilly | 8 m/km |
-| 3 | Hilly | 20 m/km |
-| 4 | Very hilly | 40 m/km |
-| 5 | Extremely hilly | 65 m/km |
+| Level | Terrain | Positive elevation |
+| ---: | --- | ---: |
+| 1 | Flat | `0 m/km` |
+| 2 | Slightly hilly | `8 m/km` |
+| 3 | Hilly | `20 m/km` |
+| 4 | Very hilly | `40 m/km` |
+| 5 | Extremely hilly | `65 m/km` |
 
-Assistance levels:
+Motor shares:
 
-| Level | Motor share |
-| --- | ---: |
-| 1 | 0% |
-| 2 | 25% |
-| 3 | 50% |
-| 4 | 75% |
-| 5 | 100% |
+| Level | Assistance | Motor share |
+| ---: | --- | ---: |
+| 1 | Minimal | `0%` |
+| 2 | Eco | `25%` |
+| 3 | Tour | `50%` |
+| 4 | Sport | `75%` |
+| 5 | Turbo | `100%` |
 
-At 0% assistance, the app returns an unlimited battery range result because the motor does not consume battery energy.
-
-The realistic range shown in the UI is:
+The UI adds an orientation range around the calculated value:
 
 ```text
 minimum = range * 0.85
 maximum = range * 1.15
 ```
 
-All range values are rounded to full kilometers.
+Values are rounded to full kilometers. At `0%` assistance, the function returns an explicit unlimited-range result because the motor does not use battery energy. Legacy fields such as battery charge, health, and charge cycles remain readable for storage compatibility but are intentionally ignored by the current formula.
 
-### Tire Pressure Calculation
+### Reichweitenformel (Deutsch)
 
-Tire pressure is implemented in:
+Die Formel liegt in:
+
+```text
+src/utils/calculateRange.ts
+```
+
+Die Funktion `calculateRange(settings)` ist rein und deterministisch. Sie verwendet weder React noch DOM- oder Storage-Zugriffe.
+
+```text
+Reichweite = Akkukapazität / Energieverbrauch pro Kilometer
+```
+
+Der Verbrauch bei voller Unterstützung setzt sich zusammen aus:
+
+```text
+Energieverbrauch pro Kilometer =
+  (Flachverbrauch + Steigverbrauch) * Motoranteil
+```
+
+Die fünf Gelände- und Unterstützungsstufen sowie die technischen Konstanten sind direkt in `src/utils/calculateRange.ts` dokumentiert. Der sichtbare Realbereich wird mit `0.85` und `1.15` berechnet. Dadurch wird aus dem Standardwert von rund `60 km` der Bereich `51 - 69 km`.
+
+### Formel ändern
+
+1. Konstanten oder Hilfsfunktionen in `src/utils/calculateRange.ts` ändern.
+2. `calculateRange(settings)` weiterhin rein und deterministisch halten.
+3. Erwartete Werte in `src/utils/calculateRange.test.ts` aktualisieren.
+4. Sichtbare UI-Erwartungen in `src/App.test.tsx` prüfen und bei Bedarf anpassen.
+5. Tests und Produktions-Build ausführen.
+
+```bash
+npm run test:run
+npm run build
+```
+
+### Reifendruckformel
+
+Die Logik liegt in:
 
 ```text
 src/utils/calculateTirePressure.ts
 src/data/tireSizes.ts
 ```
 
-The calculation is intentionally table-driven:
+Der Ablauf ist tabellenbasiert:
 
-1. Find the selected tire size by `tireSizeId`.
-2. Use the tire width to find the closest pressure guide entry.
-3. Use total rider + bike weight to find a load adjustment class.
-4. Apply the adjustment to front and rear base pressures.
-5. Clamp the result to safe minimums and the configured maximum tire pressure.
+1. Reifengröße anhand von `tireSizeId` suchen.
+2. Druckleitfaden anhand der nächstgelegenen Reifenbreite wählen.
+3. Gesamtgewicht aus Fahrer- und Fahrradgewicht berechnen.
+4. Gewichtsklasse auf Vorder- und Hinterrad anwenden.
+5. Ergebnis auf Mindestwerte und den konfigurierten Maximaldruck begrenzen.
+6. Bar- und PSI-Werte für die Anzeige bereitstellen.
 
-The app stores tire sizes in ETRTO-style IDs:
+Der Herstellerwert auf Reifen oder Felge ist immer wichtiger als die App-Empfehlung.
 
-```text
-50-406
-54-622
-60-559
+## Qualität und Tests
+
+Die Tests decken die zentralen Nutzerpfade und die reine Berechnungslogik ab:
+
+- Reichweitenberechnung für Gelände und Unterstützung
+- unbegrenzte Anzeige bei `0%` Motorunterstützung
+- Reifendruckberechnung, Rundung und PSI-Umrechnung
+- Speichern und Laden lokaler Einstellungen
+- deutsche und englische Locale-Auswahl
+- Navigation mit genau den zwei Tabs Reichweite und Reifendruck
+- Einstellungen öffnen, Werte speichern und Ergebnis aktualisieren
+- PWA-Installationsabfrage auf mobilen Browsern
+
+Tests einmalig ausführen:
+
+```bash
+npm run test:run
 ```
 
-In `50-406`, `50` means tire width in millimeters and `406` means bead seat diameter in millimeters.
+## Designprinzipien
 
-The default tire setup is:
+- Mobile-first: Die wichtigste Ansicht passt auf ein Smartphone-Display.
+- No-scroll shell: The main views adapt to the available smartphone height instead of making the whole app scroll.
+- Kein Seiten-Scrolling: Die Hauptansichten passen sich an die verfügbare Smartphone-Höhe an.
+- Zwei Aufgaben: Reichweite und Reifendruck stehen im Mittelpunkt.
+- Direkte Interaktion: Gelände und Unterstützung werden über große Buttons geändert.
+- Lesbarkeit: Ergebnis, Realbereich und Druckwerte haben klare visuelle Priorität.
+- Lokale Daten: Keine Anmeldung und keine unnötige externe Infrastruktur.
+- Zugänglichkeit: Semantische Buttons, ARIA-Namen, sichtbare Fokuszustände und Tastaturbedienung.
+- Einheitliches Icon-System: UI-Symbole kommen aus `lucide-react`; PWA-Icons liegen unter `public/`.
 
-| Setting | Value |
-| --- | --- |
-| Wheel size | 20" |
-| Tire size ID | `50-406` |
-| Tire width | 50 mm |
-| Inch display width | 1.97" |
-| Max pressure | 4.5 bar |
+## Grenzen der Berechnung
 
-The default tire-pressure result is:
+- Die Reichweite ist eine Schätzung und keine GPS-, Wetter- oder Streckenprognose.
+- Wind, Temperatur, Trittfrequenz, Antriebszustand, Reifenmodell, Untergrund und Gepäck werden nicht vollständig modelliert.
+- Der Reifendruck ist eine allgemeine Empfehlung und ersetzt nicht die Angaben von Reifen-, Felgen- oder Fahrradhersteller.
 
-| Position | Pressure |
-| --- | ---: |
-| Front | 2.7 bar |
-| Rear | 3.0 bar |
-| Maximum | 4.5 bar |
+## Lizenz und Projektstatus
 
-The app also provides PSI conversion:
+Das Projekt ist aktuell als private Anwendung in Entwicklung konfiguriert (`private: true` in `package.json`). Eine öffentliche Lizenz ist daher noch nicht festgelegt.
 
-```text
-1 bar = 14.5038 PSI
-```
-
-### Updating Tire Tables
-
-To add or change supported tire sizes, edit:
-
-```text
-src/data/tireSizes.ts
-```
-
-Use this shape:
-
-```ts
-{
-  id: '54-406',
-  wheelSizeInch: 20,
-  widthMm: 54,
-  beadSeatDiameterMm: 406,
-  inchLabel: '20 x 2.15'
-}
-```
-
-When updating tire data:
-
-1. Keep `id` in ETRTO width-BSD format.
-2. Keep `widthMm` consistent with the first number in `id`.
-3. Keep `beadSeatDiameterMm` consistent with the second number in `id`.
-4. Add or adjust pressure guide rows in `TIRE_PRESSURE_GUIDES` if a new width class is added.
-5. Update tests in `src/utils/calculateTirePressure.test.ts` and `src/App.test.tsx`.
-6. Run `npm run test:run` and `npm run build`.
-
-### Settings And Storage
-
-Settings are stored in `localStorage` through:
-
-```text
-src/utils/storage.ts
-```
-
-Storage keys:
-
-| Key | Purpose |
-| --- | --- |
-| `ebike-settings` | Full serialized calculator settings |
-| `ebike-has-custom-settings` | Flag used to decide whether the app still shows sample-data notices |
-
-The storage module:
-
-- validates unknown localStorage data at runtime
-- rejects invalid or unsafe values
-- migrates older saved settings to the current shape
-- maps old free tire-width values to the closest supported standardized tire size
-
-React components should not access `localStorage` directly.
-
-### Internationalization
-
-Translations live in:
-
-```text
-src/i18n.ts
-```
-
-Rules:
-
-- The app follows the browser/device language automatically.
-- Browser locales starting with `de` use German text.
-- English browser locales use English text.
-- Unsupported languages fall back to English.
-- The app also listens for browser `languagechange` events while running.
-- The app updates `document.documentElement.lang`.
-- The app switches between German and English PWA manifests.
-
-When adding UI text, add it to the `AppTranslations` interface and both translation objects.
-
-### PWA Behavior
-
-PWA files live in `public/`:
-
-| File | Purpose |
-| --- | --- |
-| `manifest.webmanifest` | English app metadata |
-| `manifest.de.webmanifest` | German app metadata |
-| `sw.js` | Service worker |
-| `icon.svg`, `icon-192.png`, `icon-512.png` | App icons |
-
-`App.tsx` listens for `beforeinstallprompt` on mobile-like browsers and shows a custom install question before calling the browser install prompt.
-
-### Design Notes
-
-- The app is mobile-first.
-- The primary layout is a fixed-width mobile shell with bottom navigation.
-- Cards are used for repeated items and focused data panels.
-- Icons come from `lucide-react`.
-- Styling is plain CSS in `src/styles/global.css`.
-- No external design system or component framework is used.
-
-### Default Settings
-
-Initial settings are defined in `src/types/index.ts`.
-
-| Setting | Default |
-| --- | ---: |
-| Battery capacity | 625 Wh |
-| Battery charge | 100% |
-| Battery health | 95% |
-| Charge cycles | 32 |
-| Rider weight | 80 kg |
-| Bike weight | 25 kg |
-| Terrain | Slightly hilly |
-| Assistance | 50% |
-| Tire size | `50-406` |
-| Max tire pressure | 4.5 bar |
-
-With the current range formula, the default result is:
-
-```text
-57 km
-Realistic: 49 - 66 km
-```
-
-### Development Guidelines
-
-- Keep calculation code pure and testable.
-- Do not move business logic into React components.
-- Keep browser persistence inside `src/utils/storage.ts`.
-- Keep tire-size and pressure tables in `src/data/tireSizes.ts`.
-- Update tests whenever visible example numbers change.
-- Run tests and build before publishing changes.
-
-### Known Limitations
-
-- The range result is an estimate, not a GPS or weather-aware prediction.
-- Tire pressure recommendations are general city/e-bike guidance and do not replace tire or rim manufacturer limits.
-- The tire-size table contains common sizes, not every possible bicycle tire.
-- Weather, wind, rider cadence, drivetrain condition, tire model, surface roughness, and cargo are not fully modeled.
-
-### License
-
-See [LICENSE](LICENSE).
+Für Fragen zur Berechnungslogik oder für Erweiterungen sind `src/utils/calculateRange.ts`, `src/utils/calculateTirePressure.ts` und die zugehörigen Tests die besten Einstiegspunkte.

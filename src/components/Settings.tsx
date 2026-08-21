@@ -4,7 +4,6 @@ import {
   BatteryFull,
   Bike,
   Gauge,
-  HeartPulse,
   Mountain,
   Ruler,
   Save,
@@ -69,13 +68,10 @@ function roundTo(value: number, digits: number): number {
   return Math.round(value * factor) / factor;
 }
 
-/** Settings screen for ride, tire, and battery data. */
+/** Settings screen for the ride values and tire data the calculator still needs. */
 export function Settings({ settings, t, onBack, onSave }: SettingsProps) {
   const [formValues, setFormValues] = useState(() => ({
     batteryCapacity: String(settings.batteryCapacity),
-    batteryCharge: String(settings.batteryCharge),
-    batteryHealth: String(settings.batteryHealth),
-    chargeCycles: String(settings.chargeCycles),
     riderWeight: String(settings.riderWeight),
     bikeWeight: String(settings.bikeWeight),
     terrain: String(settings.terrain),
@@ -162,15 +158,6 @@ export function Settings({ settings, t, onBack, onSave }: SettingsProps) {
       ...settings,
       batteryCapacity: Math.round(
         clamp(toNumber(formValues.batteryCapacity, settings.batteryCapacity), 200, 1000)
-      ),
-      batteryCharge: Math.round(
-        clamp(toNumber(formValues.batteryCharge, settings.batteryCharge), 0, 100)
-      ),
-      batteryHealth: Math.round(
-        clamp(toNumber(formValues.batteryHealth, settings.batteryHealth), 50, 100)
-      ),
-      chargeCycles: Math.round(
-        clamp(toNumber(formValues.chargeCycles, settings.chargeCycles), 0, 2000)
       ),
       riderWeight: Math.round(
         clamp(toNumber(formValues.riderWeight, settings.riderWeight), 40, 140)
@@ -406,78 +393,6 @@ export function Settings({ settings, t, onBack, onSave }: SettingsProps) {
                     </option>
                   ))}
                 </select>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="settings-section" aria-labelledby="battery-settings-title">
-          <h2 id="battery-settings-title">{t.batterySettingsTitle}</h2>
-
-          <div className="settings-two-column">
-            <div className="card settings-field">
-              <label htmlFor="batteryCharge">
-                <span className="icon-badge" aria-hidden="true">
-                  <BatteryFull className="ui-icon" strokeWidth={2.35} />
-                </span>
-                {t.batteryChargeLabel}
-              </label>
-              <div className="input-row">
-                <input
-                  aria-label={t.batteryChargeLabel}
-                  id="batteryCharge"
-                  inputMode="numeric"
-                  max={100}
-                  min={0}
-                  onChange={(event) => updateValue('batteryCharge', event.target.value)}
-                  type="number"
-                  value={formValues.batteryCharge}
-                />
-                <span>%</span>
-              </div>
-            </div>
-
-            <div className="card settings-field">
-              <label htmlFor="batteryHealth">
-                <span className="icon-badge" aria-hidden="true">
-                  <HeartPulse className="ui-icon" strokeWidth={2.35} />
-                </span>
-                {t.batteryHealthLabel}
-              </label>
-              <div className="input-row">
-                <input
-                  aria-label={t.batteryHealthLabel}
-                  id="batteryHealth"
-                  inputMode="numeric"
-                  max={100}
-                  min={50}
-                  onChange={(event) => updateValue('batteryHealth', event.target.value)}
-                  type="number"
-                  value={formValues.batteryHealth}
-                />
-                <span>%</span>
-              </div>
-            </div>
-
-            <div className="card settings-field">
-              <label htmlFor="chargeCycles">
-                <span className="icon-badge" aria-hidden="true">
-                  <Gauge className="ui-icon" strokeWidth={2.35} />
-                </span>
-                {t.chargeCyclesLabel}
-              </label>
-              <div className="input-row">
-                <input
-                  aria-label={t.chargeCyclesLabel}
-                  id="chargeCycles"
-                  inputMode="numeric"
-                  max={2000}
-                  min={0}
-                  onChange={(event) => updateValue('chargeCycles', event.target.value)}
-                  type="number"
-                  value={formValues.chargeCycles}
-                />
-                <span>#</span>
               </div>
             </div>
           </div>

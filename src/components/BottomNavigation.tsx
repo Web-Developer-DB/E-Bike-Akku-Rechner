@@ -1,4 +1,4 @@
-import { BatteryMedium, CircleEllipsis, Gauge, Route, type LucideIcon } from 'lucide-react';
+import { Gauge, Route, type LucideIcon } from 'lucide-react';
 import type { AppTranslations } from '../i18n';
 import type { AppTab } from '../types';
 
@@ -22,9 +22,7 @@ export function BottomNavigation({
 }: BottomNavigationProps) {
   const items: NavigationItem[] = [
     { tab: 'range', label: t.tabRange, icon: Route },
-    { tab: 'pressure', label: t.tabPressure, icon: Gauge },
-    { tab: 'battery', label: t.tabBattery, icon: BatteryMedium },
-    { tab: 'more', label: t.tabMore, icon: CircleEllipsis }
+    { tab: 'pressure', label: t.tabPressure, icon: Gauge }
   ];
 
   return (
