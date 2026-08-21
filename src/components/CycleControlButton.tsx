@@ -1,3 +1,9 @@
+/**
+ * Reusable tap-to-cycle control used for terrain and motor assistance.
+ *
+ * A cycle button is preferable to a tiny slider on a phone: the current value
+ * is always visible, and each tap advances through a finite localized list.
+ */
 import { RotateCw, type LucideIcon } from 'lucide-react';
 import type { Option } from '../types';
 
@@ -7,6 +13,7 @@ import type { Option } from '../types';
  * The control is used for short option lists where repeated taps are quick and
  * reliable on a phone-sized screen.
  */
+/** Generic props keep the control type-safe for both supported option lists. */
 interface CycleControlButtonProps<TValue extends number> {
   icon: LucideIcon;
   title: string;

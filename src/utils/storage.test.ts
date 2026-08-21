@@ -1,3 +1,6 @@
+/**
+ * Persistence tests for browser storage, migration, validation, and defaults.
+ */
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
   hasCustomSettings,

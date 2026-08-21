@@ -1,7 +1,14 @@
+/**
+ * Small confirmation dialog shown before the browser's native PWA prompt.
+ *
+ * The browser owns the actual installation flow. This component only provides
+ * a localized, touch-friendly decision surface for the user.
+ */
 import { Download, X } from 'lucide-react';
 import type { AppTranslations } from '../i18n';
 
 /** Props for the PWA installation question. */
+/** Callbacks and translations required by the modal. */
 interface InstallPromptModalProps {
   t: AppTranslations;
   onAccept: () => void | Promise<void>;

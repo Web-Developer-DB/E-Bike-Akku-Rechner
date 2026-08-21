@@ -1,8 +1,15 @@
+/**
+ * Detailed tire-pressure view.
+ *
+ * This screen explains the compact pressure values from the range board and
+ * gives the rider a simple way to record the last physical pressure check.
+ */
 import { ClipboardCheck, Info, Road, Trees } from 'lucide-react';
 import type { AppTranslations } from '../i18n';
 import type { CalculatorSettings, PressureUnit } from '../types';
 import type { TirePressureResult } from '../utils/calculateTirePressure';
 
+/** Data and callbacks required to render the pressure workflow. */
 interface TirePressureScreenProps {
   pressure: TirePressureResult;
   settings: CalculatorSettings;
@@ -10,6 +17,7 @@ interface TirePressureScreenProps {
   onMarkChecked: () => void;
 }
 
+/** Formats values with the active browser locale for readable UI output. */
 function formatNumber(value: number, digits: number): string {
   return new Intl.NumberFormat(navigator.language, {
     maximumFractionDigits: digits,
@@ -17,6 +25,7 @@ function formatNumber(value: number, digits: number): string {
   }).format(value);
 }
 
+/** Selects the requested axle or sidewall limit in the active unit. */
 function getPressureValue(
   pressure: TirePressureResult,
   position: 'front' | 'rear' | 'max',
@@ -41,6 +50,7 @@ function getPressureValue(
   return formatNumber(value, 1);
 }
 
+/** Turns the stored day count into a short localized status label. */
 function getLastCheckText(days: number, t: AppTranslations): string {
   const isGerman = t.backButton === 'Zurück';
 

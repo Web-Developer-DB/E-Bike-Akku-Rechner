@@ -1,3 +1,6 @@
+/**
+ * Unit tests for the pure range model and its important monotonic behaviors.
+ */
 import { describe, expect, it } from 'vitest';
 import { calculateRange } from './calculateRange';
 import { DEFAULT_SETTINGS, type RangeResult } from '../types';

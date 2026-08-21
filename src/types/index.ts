@@ -42,7 +42,7 @@ export interface CalculatorSettings {
   lastPressureCheckDays: number;
 }
 
-/** Rounded finite result values shown in the result card. */
+/** Rounded finite result values shown in the result board. */
 interface EstimatedRangeResult {
   range: number;
   minRange: number;
@@ -58,7 +58,7 @@ interface UnlimitedRangeResult {
   isUnlimited: true;
 }
 
-/** Rounded result values shown in the result card. */
+/** Union returned by the range formula so the UI can handle infinity safely. */
 export type RangeResult = EstimatedRangeResult | UnlimitedRangeResult;
 
 /** Generic shape for localized numeric option lists. */

@@ -1,3 +1,10 @@
+/**
+ * Tire-pressure calculation module.
+ *
+ * It combines the tire reference tables with system weight and returns both
+ * bar and PSI so the UI can display the user's selected unit without losing
+ * the normalized bar values used internally.
+ */
 import type { CalculatorSettings } from '../types';
 import {
   getClosestPressureGuide,
@@ -48,6 +55,10 @@ export function psiToBar(value: number): number {
 export function calculateTirePressure(
   settings: CalculatorSettings
 ): TirePressureResult {
+  /**
+   * First resolve the tire size, then apply width and load adjustments. The
+   * final clamp ensures a recommendation never exceeds the sidewall limit.
+   */
   const totalWeight = settings.riderWeight + settings.bikeWeight;
   const tireSize =
     getTireSizeById(settings.tireSizeId) ??

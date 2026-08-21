@@ -1,3 +1,9 @@
+/**
+ * Unit tests for tire-pressure formulas, conversion helpers, and safety caps.
+ *
+ * These tests intentionally use the same default settings as the UI examples
+ * so a future formula change makes the visible product behavior explicit.
+ */
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_SETTINGS } from '../types';
 import {
@@ -7,6 +13,7 @@ import {
 } from './calculateTirePressure';
 
 describe('calculateTirePressure', () => {
+  /** The default data should produce the documented front/rear recommendation. */
   it('liefert fuer Standarddaten die erwartete Empfehlung', () => {
     expect(calculateTirePressure(DEFAULT_SETTINGS)).toEqual({
       frontBar: 2.7,
@@ -18,6 +25,7 @@ describe('calculateTirePressure', () => {
     });
   });
 
+  /** Additional system weight selects a higher pressure adjustment class. */
   it('erhoeht den empfohlenen Druck bei mehr Gewicht', () => {
     const defaultPressure = calculateTirePressure(DEFAULT_SETTINGS);
     const heavyPressure = calculateTirePressure({
@@ -30,6 +38,7 @@ describe('calculateTirePressure', () => {
     expect(heavyPressure.rearBar).toBeGreaterThan(defaultPressure.rearBar);
   });
 
+  /** Wider tires use a lower baseline pressure in the reference table. */
   it('senkt den empfohlenen Druck bei breiteren Reifen', () => {
     const narrowPressure = calculateTirePressure({
       ...DEFAULT_SETTINGS,
@@ -46,6 +55,7 @@ describe('calculateTirePressure', () => {
     expect(widePressure.rearBar).toBeLessThan(narrowPressure.rearBar);
   });
 
+  /** Recommendations must never exceed the sidewall limit entered by the user. */
   it('begrenzt die Empfehlung auf den maximalen Reifendruck', () => {
     const pressure = calculateTirePressure({
       ...DEFAULT_SETTINGS,
@@ -59,6 +69,7 @@ describe('calculateTirePressure', () => {
     expect(pressure.frontBar).toBeLessThanOrEqual(3);
   });
 
+  /** Public conversion helpers must remain mutually consistent. */
   it('rechnet zwischen bar und PSI um', () => {
     expect(barToPsi(4.5)).toBe(65);
     expect(psiToBar(65)).toBe(4.5);

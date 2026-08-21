@@ -1,13 +1,21 @@
+/**
+ * Primary navigation for the two focused workflows of the app.
+ *
+ * The component deliberately contains no routing library. App.tsx owns the
+ * selected tab, while this file only renders choices and reports clicks.
+ */
 import { Gauge, Route, type LucideIcon } from 'lucide-react';
 import type { AppTranslations } from '../i18n';
 import type { AppTab } from '../types';
 
+/** Values supplied by the parent navigation state. */
 interface BottomNavigationProps {
   activeTab: AppTab;
   t: AppTranslations;
   onTabChange: (tab: AppTab) => void;
 }
 
+/** Internal view-model used to render each localized navigation button. */
 interface NavigationItem {
   tab: AppTab;
   label: string;

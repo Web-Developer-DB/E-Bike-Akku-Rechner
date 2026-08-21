@@ -16,10 +16,12 @@
   text-rendering: optimizeLegibility;
 }
 
+/* Use border-box everywhere so compact phone layouts keep predictable sizes. */
 * {
   box-sizing: border-box;
 }
 
+/* The app is intentionally a no-scroll viewport shell for the primary screens. */
 html,
 body,
 #root {
@@ -28,6 +30,7 @@ body,
   overflow: hidden;
 }
 
+/* Keep the page background visible around the centered desktop shell. */
 body {
   min-width: 320px;
   min-height: 100%;
@@ -35,6 +38,7 @@ body {
   background: #dfe7e4;
 }
 
+/* Form controls inherit the app typography and avoid browser-specific defaults. */
 button,
 input,
 select {
@@ -46,6 +50,7 @@ button {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* The shell provides the fixed-height canvas and bottom-navigation safe area. */
 .app-shell {
   position: relative;
   width: min(100%, 430px);
@@ -59,6 +64,7 @@ button {
   box-shadow: 0 0 0 1px rgba(23, 38, 34, 0.1);
 }
 
+/* Shared vertical layout used by range, pressure, and settings screens. */
 .tab-screen,
 .screen-stack {
   display: flex;
@@ -97,6 +103,7 @@ button {
   grid-column: 3;
 }
 
+/* Settings uses a wider leading column because its back button contains text. */
 .settings-header.compact {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) 72px;
@@ -129,6 +136,7 @@ button {
   font-weight: 850;
 }
 
+/* Compact icon actions and text buttons share the same tactile surface language. */
 .icon-button {
   display: inline-grid;
   place-items: center;
@@ -216,6 +224,7 @@ button {
   height: 1.08rem;
 }
 
+/* Reusable white content surface used for pressure, settings, and hint cards. */
 .card {
   border: 1px solid #cad6d2;
   border-radius: 8px;
@@ -223,6 +232,7 @@ button {
   box-shadow: 0 8px 20px rgba(23, 38, 34, 0.08);
 }
 
+/* Small icon containers create consistent visual anchors for labels. */
 .icon-badge {
   display: inline-flex;
   flex: 0 0 auto;
@@ -278,6 +288,7 @@ button {
   animation-delay: 190ms;
 }
 
+/* The board hero establishes visual priority for the calculated range. */
 .range-board-hero {
   align-self: start;
   border: 1px solid #c7d9d3;
@@ -312,6 +323,7 @@ button {
   gap: 10px;
 }
 
+/* Large tap targets replace dense sliders on the main mobile workflow. */
 .cycle-control-button {
   position: relative;
   display: grid;
@@ -616,6 +628,7 @@ select:focus-visible {
   gap: 10px;
 }
 
+/* Dedicated pressure values are arranged as two readable axle cards. */
 .pressure-card-grid,
 .hint-grid {
   display: grid;
@@ -773,6 +786,7 @@ select:focus-visible {
   gap: 12px;
 }
 
+/* Settings inputs are intentionally compact so the no-scroll mobile form fits. */
 .settings-field {
   padding: 14px;
 }
@@ -944,6 +958,7 @@ select:focus-visible {
   animation: backdrop-enter 260ms ease both;
 }
 
+/* Modal content remains framed and centered above the active screen. */
 .welcome-modal {
   width: min(100%, 420px);
   max-height: calc(100dvh - 32px);
@@ -1104,6 +1119,7 @@ select:focus-visible {
   margin-top: 18px;
 }
 
+/* Motion is short and positional: it communicates state without visual noise. */
 @keyframes screen-enter {
   from {
     opacity: 0;

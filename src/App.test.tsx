@@ -1,3 +1,9 @@
+/**
+ * End-to-end-style component tests for the central application shell.
+ *
+ * The suite deliberately interacts with accessible roles and visible labels so
+ * it documents user workflows instead of coupling tests to implementation DOM.
+ */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';

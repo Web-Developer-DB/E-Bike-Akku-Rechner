@@ -1,3 +1,9 @@
+/**
+ * Main single-board range screen.
+ *
+ * It intentionally keeps the most important information visible together:
+ * estimated range, two tap controls, and the recommended front/rear pressure.
+ */
 import {
   BatteryCharging,
   Gauge,
@@ -17,6 +23,7 @@ import { CycleControlButton } from './CycleControlButton';
  * The component stays presentational: it receives the already calculated result
  * and reports user actions upward through callbacks.
  */
+/** Inputs and event handlers supplied by the application coordinator. */
 interface RangeCalculatorProps {
   result: RangeResult;
   pressure: TirePressureResult;

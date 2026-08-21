@@ -1,3 +1,11 @@
+/**
+ * Static tire-size and pressure reference data.
+ *
+ * The calculator uses tables instead of pretending that one universal tire
+ * formula is precise. Lookup helpers below keep data access consistent and
+ * make the assumptions easy to audit or extend.
+ */
+
 /** One selectable tire size in unambiguous ETRTO notation. */
 export interface TireSizeOption {
   id: string;
@@ -90,6 +98,7 @@ export const TIRE_PRESSURE_GUIDES: TirePressureGuide[] = [
   { widthMm: 62, baseFrontBar: 1.8, baseRearBar: 2.1 }
 ];
 
+/** Load classes applied after a tire-width baseline has been selected. */
 export const LOAD_PRESSURE_ADJUSTMENTS: LoadPressureAdjustment[] = [
   { maxTotalWeightKg: 80, frontDeltaBar: -0.3, rearDeltaBar: -0.3 },
   { maxTotalWeightKg: 105, frontDeltaBar: 0, rearDeltaBar: 0 },
@@ -98,22 +107,31 @@ export const LOAD_PRESSURE_ADJUSTMENTS: LoadPressureAdjustment[] = [
   { maxTotalWeightKg: Number.POSITIVE_INFINITY, frontDeltaBar: 0.6, rearDeltaBar: 0.7 }
 ];
 
+/** Finds one exact ETRTO option by its stable persisted identifier. */
 export function getTireSizeById(id: string): TireSizeOption | undefined {
   return TIRE_SIZE_OPTIONS.find((option) => option.id === id);
 }
 
+/** Returns every tire option belonging to a selected nominal wheel diameter. */
 export function getTireSizesByWheel(wheelSizeInch: number): TireSizeOption[] {
   return TIRE_SIZE_OPTIONS.filter(
     (option) => option.wheelSizeInch === wheelSizeInch
   );
 }
 
+/** Builds the distinct wheel-size values used by the settings select. */
 export function getWheelSizeOptions(): number[] {
   return Array.from(
     new Set(TIRE_SIZE_OPTIONS.map((option) => option.wheelSizeInch))
   );
 }
 
+/**
+ * Selects the width closest to a legacy or manually migrated tire value.
+ *
+ * Matching wheel size is preferred; if no matching wheel exists, all known
+ * sizes are considered so old saved data still gets a safe fallback.
+ */
 export function getClosestTireSize(
   wheelSizeInch: number,
   widthMm: number
@@ -129,6 +147,7 @@ export function getClosestTireSize(
   }, candidates[0]);
 }
 
+/** Finds the pressure baseline whose width is closest to the selected tire. */
 export function getClosestPressureGuide(widthMm: number): TirePressureGuide {
   return TIRE_PRESSURE_GUIDES.reduce((closestGuide, guide) => {
     const closestDistance = Math.abs(closestGuide.widthMm - widthMm);
@@ -138,6 +157,7 @@ export function getClosestPressureGuide(widthMm: number): TirePressureGuide {
   }, TIRE_PRESSURE_GUIDES[0]);
 }
 
+/** Finds the first load class that can carry the complete system weight. */
 export function getLoadPressureAdjustment(
   totalWeightKg: number
 ): LoadPressureAdjustment {
@@ -146,6 +166,7 @@ export function getLoadPressureAdjustment(
   ) ?? LOAD_PRESSURE_ADJUSTMENTS[LOAD_PRESSURE_ADJUSTMENTS.length - 1];
 }
 
+/** Creates the compact ETRTO plus inch label shown in the settings menu. */
 export function formatTireSizeLabel(option: TireSizeOption): string {
   return `${option.id} · ${option.inchLabel}`;
 }
