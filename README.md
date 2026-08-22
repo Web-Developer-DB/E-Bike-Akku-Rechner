@@ -7,8 +7,38 @@
   <img src="https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white" alt="TypeScript 5.9" />
   <img src="https://img.shields.io/badge/Vite-7-646CFF?logo=vite&logoColor=white" alt="Vite 7" />
   <img src="https://img.shields.io/badge/PWA-installable-101B1A?logo=pwa&logoColor=white" alt="Installable PWA" />
-  <img src="https://img.shields.io/badge/tests-42%20passing-00A884?logo=vitest&logoColor=white" alt="42 passing tests" />
+  <img src="https://img.shields.io/badge/tests-43%20passing-00A884?logo=vitest&logoColor=white" alt="43 passing tests" />
 </div>
+
+## App Preview
+
+The repository opens with a quick visual overview of the current mobile-first
+interface. The three views cover the complete primary workflow: estimate range,
+check tire pressure, and adjust personal settings.
+
+<table>
+  <tr>
+    <th>Range overview</th>
+    <th>Tire pressure</th>
+    <th>Settings</th>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="public/screenshots/range-overview.png" width="220" alt="Range overview screen showing estimated range, ride controls, and recommended tire pressure" />
+    </td>
+    <td align="center">
+      <img src="public/screenshots/tire-pressure.png" width="220" alt="Tire pressure screen showing front and rear recommendations" />
+    </td>
+    <td align="center">
+      <img src="public/screenshots/settings.png" width="220" alt="Settings screen showing tire, bike, and rider values" />
+    </td>
+  </tr>
+</table>
+
+Die Vorschau zeigt die drei zentralen Ansichten der mobilen PWA: Reichweite,
+Reifendruck und Einstellungen. Die Screenshots werden direkt im Repository
+versioniert und sind deshalb auch auf GitHub ohne lokale Entwicklungsumgebung
+sichtbar.
 
 > **Zwei klare Aufgaben. Eine schnelle mobile Oberfläche.**
 > Die App berechnet eine realistische E-Bike-Reichweite und zeigt den empfohlenen Druck für Vorder- und Hinterreifen. Alle Angaben bleiben lokal auf dem Gerät.
@@ -27,7 +57,7 @@
 1. App öffnen oder auf Android im Browser über **Zum Startbildschirm hinzufügen** installieren.
 2. Beispieldaten bestätigen oder über das Zahnrad eigene Fahrrad- und Fahrdaten speichern.
 3. Auf der Reichweiten-Seite **Gelände** und **Unterstützung** antippen, um die Schätzung sofort anzupassen.
-4. Im Tab **Tire pressure** den empfohlenen Druck für Vorder- und Hinterreifen ablesen.
+4. Im Tab **Reifendruck** den empfohlenen Druck für Vorder- und Hinterreifen ablesen.
 
 Die Beispielrechnung startet mit ungefähr **60 km** und einem realistischen Bereich von **51 bis 69 km**. Das Ergebnis ist eine Orientierung und ersetzt keine Messung unter realen Bedingungen.
 
@@ -162,6 +192,10 @@ Browser / installierte PWA
 │   ├── icon-v2.svg
 │   ├── manifest.de.webmanifest
 │   ├── manifest.webmanifest
+│   ├── screenshots/
+│   │   ├── range-overview.png
+│   │   ├── settings.png
+│   │   └── tire-pressure.png
 │   └── sw.js
 └── src/
     ├── App.tsx
@@ -201,6 +235,7 @@ Browser / installierte PWA
 | `src/types/index.ts` | Gemeinsame Typen, Optionen und Standardwerte |
 | `src/styles/global.css` | Mobile-first Layout, responsive Größen und Fokuszustände |
 | `public/manifest*.webmanifest` | Installationsname, Sprache, Theme-Farben und PWA-Icons |
+| `public/screenshots/` | Versionierte UI-Vorschauen für die README und GitHub-Projektseite |
 | `public/sw.js` | Offline-App-Shell und Cache-Versionierung |
 
 ## Berechnungslogik
